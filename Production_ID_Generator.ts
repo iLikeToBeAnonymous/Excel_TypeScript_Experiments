@@ -1,91 +1,22 @@
 function main(workbook: ExcelScript.Workbook) {
-  let mySheet = workbook.getActiveWorksheet();
-  // let cleanedDt = String(genDateTime().match(/\d*/g).join(''));
-
-  // // let myPid = convertToBase(cleanedDt, 32);
-  // let myPid = shortenTimestamp(cleanedDt);
-  // // workbook.getSelectedRange().setValue(myPid);
-  // workbook.getSelectedRange().setValue(myPid);
-
-  //https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.worksheet?view=office-scripts#excelscript-excelscript-worksheet-getusedrange-member(1)
-  //https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.range?view=office-scripts
-  let usedRange = mySheet.getUsedRange(true);
-  console.log('Used Range: ' + usedRange.getAddress());
-  // // // console.log('usedRange is of type: ' + typeof usedRange) // It's an "Object"
-  // // console.log(Object.entries(usedRange));
-  console.log(columnHeadersListString(usedRange));
-  printRangeAsJson(usedRange);
-  // let headerRowVals = (usedRange.getRow(0).getValues())[0]; // AN ARRAY OF COLUMN HEADER NAMES
-  // // console.log(JSON.stringify(headerRowVals,null,2)); //calling JSON.stringify() works!
-};
-
-function printRangeAsJson(myRange: ExcelScript.Range){
-  /*  While the below JSON.stringify works, it basically just returns an array of arrays, NOT 
-      a proper JSON object formatted as a string... */
-  // console.log(JSON.stringify(myRange.getValues(),null,2));
-  /* Pull the entire sheet of data values, excluding the header row. By using slice(), 
-     you retrieve everything BUT the header row. */
-  let sheetVals = myRange.getValues().slice(1);
-  let headerRowVals = myRange.getValues()[0];
-  /* Next, assume that index 0 of the topmost array contains the column headers... */
-  console.log(sheetVals);
-  console.log(headerRowVals.join(', '));
-
-  let jsonArray: Array<string|number|object> = []; //This is clunky, but the compiler doesn't complain.
-  let rowCtr: number = 0; 
-  let rowLimit: number = sheetVals.length;
-  while (rowCtr < rowLimit){
-    jsonArray.push({});
-    sheetVals[rowCtr].forEach((cellItem: string, indx: number) => {
-      // console.log(headerRowVals[indx] + ': ' + cellItem);
-      jsonArray[rowCtr][headerRowVals[indx]] = cellItem;
-    });
-
-    rowCtr++;
-  };
-
-  // //let jsonArray = [{}]// Array(); // It doesn't like the Array() constructor...
-  // let jsonArray: Array<string|number|object> = []; //This is clunky, but the compiler doesn't complain.
-  // let myCtr = 0;
-  // //console.log('Counter: ' + myCtr);
-  // jsonArray.push({});
-  // jsonArray[myCtr]['alpha'] = 'first';
-  // jsonArray[myCtr]['beta'] = 'second';
-  // myCtr += 1;
-  // //console.log('Counter: ' + myCtr);
-  // jsonArray.push({});
-  // jsonArray[myCtr]['alpha'] = 'third';
-  // jsonArray[myCtr]['beta'] = 'fourth';
-  console.log(JSON.stringify(jsonArray,null,2));
-
-};
-
-function columnHeadersListString(usedRange: ExcelScript.Range){
-  // // let headerRowStr = usedRange.getAddress().split(':');
-  // // console.log(headerRowStr[0]);
-  // // //https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.range?view=office-scripts#excelscript-excelscript-range-getextendedrange-member(1)
-  // // let firstRow = mySheet.getRange("A1").getExtendedRange(ExcelScript.KeyboardDirection.right); //mySheet.getRange("A1").getEntireRow() 
-  // // console.log(firstRow.getAddress());
-  // // let columnCount = usedRange.getColumnCount();
-  // // https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.range?view=office-scripts#excelscript-excelscript-range-getrow-member(1)
-  // getRow() counts the first row as being row zero.
-  console.log('Top Row Addresses: ' + usedRange.getRow(0).getAddress() + 
-            '\n     Column Count: ' + usedRange.getColumnCount() + 
-            '\n        Row Count: ' + usedRange.getRowCount());
-  /* The var usedRange specified earlier is a RANGE of cells... usedRange.getRow(0) retrieves the 0th row of the defined range.
-     Because the Range.prototype.getValues() function is meant to retrieve all values in a range, it returnes an array of arrays
-     (It anticipates the top-level array as being the row of the sheet, and the secondary array as being the cell values in the row).
-     Therefore, you must specify the 0th index of the returned array to just get a single array. */
-  let headerRowVals = (usedRange.getRow(0).getValues())[0]; // AN ARRAY OF COLUMN HEADER NAMES
-  // console.log(JSON.stringify(headerRowVals,null,2)); //calling JSON.stringify() works!
-  // console.log(headerRowVals); 
-  //headerRowVals.forEach(ele => console.log(ele)); // THIS WORKS WELL!
-  let bigStr = ''; // An empty string which will be populated in the following loop
-  headerRowVals.forEach((ele: string,indx: number) => {
-    bigStr = bigStr + 'index ' + String(indx).padStart(2,'0') + ': ' + ele + '\n'
-  });
-  // console.log(bigStr);
-  return bigStr;
+  // let mySheet = workbook.getActiveWorksheet();
+  let cleanedDt = String(genDateTime().match(/\d*/g).join(''));
+  // let myPid = convertToBase(cleanedDt, 32); // THIS IS THE STANDARD INCUMBENT DATE STAMP ENCODING
+  let myPid = shortenTimestamp(cleanedDt);
+  // Because this is a selected range, if multiple cells are selected, they will all be populated with the same PID value.
+  let scriptTarget = workbook.getSelectedRange()
+  // scriptTarget.clear(); // This clears values and formats for the selected range.
+  scriptTarget.setValue(myPid); // Sets the date code/PID into the selected cells.
+  
+  /* https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.rangeformat?view=office-scripts
+     https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.verticalalignment?view=office-scripts */
+    let vertAlign: ExcelScript.VerticalAlignment = 1; // (2: bottom, 1: middle, 0: top)
+    scriptTarget.getFormat().setVerticalAlignment(vertAlign);
+  
+  // https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.rangefont?view=office-scripts
+  const cellFont = scriptTarget.getFormat().getFont();
+  cellFont.setName('Consolas');
+  cellFont.setSize(10);
 };
 
 function genDateTime() {
@@ -93,13 +24,15 @@ function genDateTime() {
   return now.toISOString(); // must use "val" instead of "text" since it's an input box.
 };
 
-function convertToBase(originalNumber: string, targetBaseSystem: number) {
-    var convertedNumber = ""; //targetBaseSystem = 32;
-    var extraNumeralTable = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghikjlmnopqrstuvwxyz";
+function convertToBase(originalNumber: string|number, targetBaseSystem: number) {
+    var convertedNumber = ''; //targetBaseSystem = 32;
+    var extraNumeralTable = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghikjlmnopqrstuvwxyz';
     var chineseNumerals = '一二三四五六七八九十'; // These are the Chinese characters for 1 through 10 (the plus-looking thing is 10)
-    var monthTable = "123456789OND"; //specialized base12 using 'O' for October, 'N' for November, 'D' for December.
-    var dayTable = "123456789ABCDEFGHIJKLMNOPQRSTUV";
+    var monthTable = '123456789OND'; //specialized base12 using 'O' for October, 'N' for November, 'D' for December.
+    var dayTable = '123456789ABCDEFGHIJKLMNOPQRSTUV';
 
+    //make sure it's a positive integer. (the '10' as the 2nd param of parseInt ensures it's a base-10 number)
+    originalNumber = typeof (originalNumber) == 'string' ? String(parseInt(originalNumber,10)) : String(Math.abs(originalNumber) * 1); 
     while (Number(originalNumber) > 0) {
         /* The javaScript "remainder" method fails due to the shorcomings
         / of floating point numbers. Therefore, a function needs to be created instead.*/
@@ -120,7 +53,7 @@ function convertToBase(originalNumber: string, targetBaseSystem: number) {
         //convertedNumber = String(rightDigit) + convertedNumber;
         convertedNumber = String(rightDigit).concat(convertedNumber); //
     }
-    console.log(convertedNumber)
+    // console.log(convertedNumber)
     return convertedNumber;
 };
 
@@ -133,10 +66,10 @@ function modulo(divident: string, divisor: string) { // when passing, make sure 
       The var "eachIndex" is the contents at each index in the shallowCopyArray.
       The contents at each index is parsed into an int.*/
     var anArrayOfInts = shallowCopyArray.map(eachIndex => parseInt(eachIndex, 10)); // The "10" is just to make sure it parses to base 10
-    console.log(anArrayOfInts.toString()); // equivalent value to divident/divisor rounded down to an int.
+    // console.log(anArrayOfInts.toString()); // equivalent value to divident/divisor rounded down to an int.
     //The var "remainder" gets used as the accumulator in the reduce method below
-    var myAccumulator = anArrayOfInts.reduce((remainder, value) => (remainder * 10 + value) % divisor, 0); // Mod is calculated on no more than two digits at a time this way
-    console.log("Accumulator Value: " + myAccumulator);
+    var myAccumulator = anArrayOfInts.reduce((remainder, value) => (remainder * 10 + value) % parseInt(divisor, 10), 0); // Mod is calculated on no more than two digits at a time this way
+    // console.log("Accumulator Value: " + myAccumulator);
     return myAccumulator;
 };
 
@@ -160,11 +93,13 @@ function longDivision(myNumerator: number, myDenominator: number) {
         remainder = (digit + (remainder * 10)) % myDenominator;
         i++;
     }
-    return answer;
+    return String(answer);
 };
 
-function monthCode(rawNmbr: number) {
-  rawNmbr = Math.floor(Math.abs(rawNmbr) * 1); //make sure it's a positive integer
+function monthCode(rawNmbr: number|string) {
+  //make sure it's a positive integer. (the '10' as the 2nd param of parseInt ensures it's a base-10 number)
+  rawNmbr = typeof (rawNmbr) == 'string' ? parseInt(rawNmbr,10) : Math.floor(Math.abs(rawNmbr) * 1); 
+  // rawNmbr = Math.floor(Math.abs(rawNmbr) * 1); //make sure it's a positive integer
   var monthTable = '123456789OND'; //specialized base12 using 'O' for October, 'N' for November, 'D' for December.
   if (rawNmbr < 10) { return String(rawNmbr) }
   else { return monthTable[rawNmbr - 1] };
@@ -188,8 +123,8 @@ function shortenTimestamp(rawNmbr: string) {
   var theScnds = rawNmbr.slice(-5, -3); // max seconds > 32 & < 100, so conversion doesn't save any space.
 
   var allMilSec = rawNmbr.slice(-5); //var allMilSec = theScnds.concat(milSec);
-  var hndrthsSec = Math.round(`${allMilSec.slice(0, 4)}.${allMilSec.slice(-1)}`); //basically divides "allMilSec" by 10 and 
-  console.log('Notice me, senpai! ' + hndrthsSec);
+  var hndrthsSec = Math.round(parseInt(`${allMilSec.slice(0, 4)}.${allMilSec.slice(-1)}`)); //basically divides "allMilSec" by 10 and 
+  console.log('hndrthsSec: ' + hndrthsSec);
   var theMinutes = rawNmbr.slice(-7, -5); // max minutes > 32 & < 100, so conversion doesn't save any space.
 
   var theHrs = rawNmbr.slice(-9, -7); //max hours < 32 & > 9, so conversion DOES save space. DO NOT PAD.
@@ -200,7 +135,7 @@ function shortenTimestamp(rawNmbr: string) {
 
   // Year is long, so perhaps restrict to 3 digits and just assume the 1st digit will be a "2" for the life the the business?
   var theYear = rawNmbr.slice(-17, -13); //4 digits can be reduced to 3, so only pad 3
-
+  // let allTogether: Array<string | number> = [];
   var allTogether = [convertToBase(theYear, 36).padStart(3, '0'),
   '-' + monthCode(theMonth), //convertToBase(theMonth,12).padStart(1,'0'), 
   convertToBase(theDays, 32).padStart(1, '0'),

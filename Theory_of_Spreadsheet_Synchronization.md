@@ -28,6 +28,24 @@ _ARE_ child items (or in some cases are grandchildren) of the aformentioned comp
              [`ExcelScript.RangeValueType`]. 
             - Possible values are _boolean_, _double_, _empty_, _error_, _integer_, _richValue_, _string_, and _unknown_
 
+---
+### _Key Methods of ExcelScript.Range_
+#### `.getFormulas()`
+```TS
+let debugMsg: string;
+(myRange.getFormulas()).forEach((cell) => {debugMsg += cell + '\n';}); 
+debugMsg = debugMsg.split(',').join('\n');
+console.log(debugMsg);
+```
+
+#### `.getHidden()`
+Returns:
+ - `true` if all cells in a range are hidden
+ - `false` if no cells in the range are hidden
+ - `null` if some cells are hidden
+ See also `.getColumnHidden()` and `.getRowHiden()` for similar functionality specific to columns or rows.
+---
+
 [//]: # (HIDDEN REFERENCES)
 [tableObject]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.table?view=office-scripts>
 [rangeObject]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.range?view=office-scripts>

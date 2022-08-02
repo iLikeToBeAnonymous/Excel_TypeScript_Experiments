@@ -6,14 +6,14 @@ Excel spreadsheets are divided into two primary hierarchical components:
 Worksheets also have several components, but these are not necessarily hierarchical to each other. However, they
 _ARE_ child items (or in some cases are grandchildren) of the aformentioned components.
 - **Range** &mdash; A block of cells (e.g., `A1:C5`)
-    - Child of `ExcelScript.Worksheet`.
+    - Child of [`ExcelScript.Worksheet`].
     - Selected cells can encompass the entire worksheet, or they can technically be a single cell
     - See [ExcelScript.Range object][rangeObject]
 - **RangeAreas** &mdash; An object that is a collection of one or more rectangular ranges in the same worksheet
-    - Child of `ExcelScript.Worksheet` (can be a sibling or a child of the `Range` object)?
+    - Child of [`ExcelScript.Worksheet`] (can be a sibling or a child of the `Range` object)?
     - See [ExcelScript.RangeAreas interface][rangeAreas]
 - **Table** &mdash; A specially-defined range with additional features similar to a database table
-    - Child of `ExcelScript.Worksheet`.
+    - Child of [`ExcelScript.Worksheet`].
     - A worksheet can contain multiple tables
     - See [ExcelScript.Table Object][tableObject]
     - Particulars about tables
@@ -29,7 +29,7 @@ _ARE_ child items (or in some cases are grandchildren) of the aformentioned comp
             - Possible values are _boolean_, _double_, _empty_, _error_, _integer_, _richValue_, _string_, and _unknown_
 
 ---
-### _Key Methods of ExcelScript.Range_
+### _Key Methods of [ExcelScript.Range][rangeObject]_
 #### `.getFormulas()`
 ```TS
 let debugMsg: string;
@@ -47,6 +47,7 @@ Returns:
 ---
 
 [//]: # (HIDDEN REFERENCES)
+[`ExcelScript.Worksheet`]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.worksheet?view=office-scripts>
 [tableObject]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.table?view=office-scripts>
 [rangeObject]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.range?view=office-scripts>
 [rangeAreas]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.rangeareas?view=office-scripts>

@@ -48,6 +48,41 @@ function printRangeAsJson(myRange: ExcelScript.Range) {
     console.log(JSON.stringify(jsonArray, null, 2));
 };
 
+function rangeToJsonObj(myRange: ExcelScript.Range) {
+    /*  While the below JSON.stringify works, it basically just returns an array of arrays, NOT 
+        a proper JSON object formatted as a string... */
+
+    /* Assume that index 0 of the topmost array contains the column headers, so just pull the column headers.. */
+    let headerRowVals = myRange.getValues()[0];
+
+    /* Next, pull the entire range of data values, excluding the header row (assumed to be the zeroth row). By 
+       using slice(), you retrieve everything BUT the header row. */
+    let sheetVals = myRange.getValues().slice(1);
+    
+    // console.log(sheetVals);
+    // console.log(headerRowVals.join(', '));
+
+    let jsonArray: Array<string | number | object> = []; //This is clunky, but it's the only way the compiler doesn't complain.
+    let rowCtr: number = 0; // WHILE EXCEL STARTS NUMBERING ROWS AT 1, FOR OUR PURPOSES, WE'LL NUMBER AT 0
+    let rowLimit: number = sheetVals.length;
+    // let rowLimit: number = 3; //DEBUGGING ONLY
+    while (rowCtr < rowLimit) {
+        jsonArray.push({}); //PUSH AN EMPTY OBJECT ONTO THE ARRAY
+        /* sheetVals[rowCtr] defines which row of the sheet range. The zero-based row number of the sheet range
+           corresponds to the index of the jsonArray into which we'll insert the object representing that row. */
+        sheetVals[rowCtr].forEach((cellItem: string, indx: number) => {
+            /* jsonArray[rowCtr] is the index of the jsonArray at which the object for the row is stored
+               headerRowVals[indx] is the column title, but the compiler doesn't like this value unless it is
+               explicitly converted to a string value.  */
+            jsonArray[rowCtr][String(headerRowVals[indx])] = cellItem;
+        });
+        
+        rowCtr++; // Advance to the next row of the sheet.
+    };
+    // console.log(JSON.stringify(jsonArray, null, 2)); //DEBUGGING
+    return jsonArray;
+};
+
 function columnHeadersListString(usedRange: ExcelScript.Range) {
     // // let headerRowStr = usedRange.getAddress().split(':');
     // // console.log(headerRowStr[0]);

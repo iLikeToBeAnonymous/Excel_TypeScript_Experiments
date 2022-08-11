@@ -4,8 +4,8 @@ function main(workbook: ExcelScript.Workbook) {
     // let myRange = workbook.getSelectedRange(); console.log('Selected Range: ' + myRange.getAddress());
     let myWorksheet = workbook.getWorksheet('Production Orders (3)');
     let myRange = myWorksheet.getRange('A4:CM458')
-    const targetTblNm: string = 'ProductionOrders'; // This will likely be passed in by PowerAutomate later
-    let targetTbl: ExcelScript.Table;
+    let targetTblNm: string = 'ProductionOrders'; // This will likely be passed in by PowerAutomate later
+    let targetTbl: ExcelScript.Table; // declaration with no value.
     
     // /* ######################################################################### */
     // /* ########################## TABLE STUFF ################################## */
@@ -17,7 +17,7 @@ function main(workbook: ExcelScript.Workbook) {
     // // (headerRange.getValueTypes()).forEach((cell) => {debugMsg += cell + '\n';}); debugMsg = debugMsg.split(',').join('\n');
     // // (headerRange.getFormulas()).forEach((cell) => {debugMsg += cell + '\n';}); debugMsg = debugMsg.split(',').join('\n');
     // console.log(debugMsg);
-  
+    
     /**FIRST, VERIFY THAT A TABLE EXISTS */
     // validateTblHeaders(headerRange);
     let myTables = myWorksheet.getTables(); // Returns an ExcelScript.Table object, 
@@ -27,25 +27,50 @@ function main(workbook: ExcelScript.Workbook) {
         convertRangeToTable(myWorksheet, myRange, targetTblNm); // call custom convertRangeToTable() function
     }else{ /** We know that worksheet DOES contain more than one table, but we don't know if it contains the one we're looking for */
         console.log('Worksheet contained table count: ' + tableCount + '...')
+        // let targetTblNm = myWorksheet.getTables()[0].getName();
+        /**Use a try-catch to see if you can acquire the table you're looking for by name */
+        try{targetTbl = myWorksheet.getTable(targetTblNm)}catch{console.log(`Table "${targetTblNm}" cannot be acquired!`)};
+        if(targetTbl != null){ /** .getTable returns null if table can't be acquired */
+        /** ################################################### */
+        /** ######### BEGIN WORKING ON VERIFIED TABLE ######### */
+            targetTbl.getColumns().forEach(col=>{console.log(col.getName())});
+            let range = targetTbl.getRangeBetweenHeaderAndTotal();
+            let rows = range.getValues();
+            // console.log('Row 0: \n' + rows[0]);
+
+            let records: ProductionOrderData[] = [];
+            for (let row of rows) {
+                let [madeUpKeys, anythingGoes, useUrImagination, nameMeButDontUseMe, mebbe] = row;
+                records.push({
+                  theseMust: madeUpKeys as string,
+                  matchThe: anythingGoes as number,
+                  interfaceDec: useUrImagination as string,
+                  laration: mebbe as number
+                })
+              }
+            console.log(JSON.stringify(records,null,2))
+            // console.log('The Table says its header address range is: ' + targetTbl.getHeaderRowRange().getAddress() + 
+            //     '\nTable has a range of: ' + targetTbl.getRange().getAddress() + 
+            //     '\nRange between header and total row: ' + targetTbl.getRangeBetweenHeaderAndTotal().getAddress()); 
+        /** ########## END WORKING ON VERIFIED TABLE ########## */
+        /** ################################################### */
+        }else if(targetTbl == null){
+            console.log(`The table "${targetTblNm}" can neither be found nor created!`);
+        }else{console.log('He\'s dead, Jim!')};
     }
-    /**Use a try-catch to see if you can acquire the table you're looking for by name */
-    try{targetTbl = myWorksheet.getTable(targetTblNm)}catch{console.log(`Table "${targetTblNm}" cannot be acquired!`)};
-    if(targetTbl != null){ /** .getTable returns null if table can't be acquired */
-    /** ######### BEGIN WORKING ON VERIFIED TABLE ######### */
-        let range = targetTbl.getRangeBetweenHeaderAndTotal();
-        let rows = range.getValues();
-        console.log('Row 0: \n' + rows[0]);
-    /** ########## END WORKING ON VERIFIED TABLE ########## */
-    }else if(targetTbl == null){
-        console.log(`The table "${targetTblNm}" can neither be found nor created!`);
-    }else{console.log('He\'s dead, Jim!')};
-    
     /** https://docs.microsoft.com/en-us/office/dev/scripts/tutorials/excel-power-automate-trigger?source=docs
      * https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.table?view=office-scripts 
      */
     // myWorksheet.getTables()[0].convertToRange(); // DEBUGGING: TOGGLE TO REMOVE TABLE CREATED BY THIS SCRIPT    
 };
-    
+
+interface ProductionOrderData {
+    theseMust: string
+    matchThe: number
+    interfaceDec: string
+    laration: number
+};
+
 function convertRangeToTable(myWorksheet: ExcelScript.Worksheet, myRange: ExcelScript.Range, newTblName: string){
     // SPLIT ALL MERGED AREAS BEFORE ATTEMPTING TO CONVERT TO A TABLE
     splitMergedAreas(myRange);
@@ -61,7 +86,7 @@ function deTableify(myNewTable: ExcelScript.Table) {
  *    .convertToRange();
  *    .getWorksheet(); // Worksheet containing the current table
  */
-myNewTable.convertToRange();
+    myNewTable.convertToRange();
 };
 
 function validateTblHeaders(headerRange: ExcelScript.Range) {

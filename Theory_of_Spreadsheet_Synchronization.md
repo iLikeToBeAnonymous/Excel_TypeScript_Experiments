@@ -7,7 +7,8 @@ Worksheets also have several components, but these are not necessarily hierarchi
 _ARE_ child items (or in some cases are grandchildren) of the aformentioned components.
 - **Range** &mdash; A block of cells (e.g., `A1:C5`)
     - Child of [ExcelScript.Worksheet].
-    - Selected cells can encompass the entire worksheet, or they can technically be a single cell
+    - Selected cells can encompass the entire worksheet, or they can technically be a single cell.
+    - Retrieving a range by address (e.g., the `A1:C5` shown above) is a method exclusive to `ExcelScript.Worksheet.getRange(address?: string)`.
     - See [ExcelScript.Range] object
 - **RangeAreas** &mdash; An object that is a collection of one or more rectangular ranges in the same worksheet
     - Child of [ExcelScript.Worksheet] (can be a sibling or a child of the `Range` object)?
@@ -20,6 +21,8 @@ _ARE_ child items (or in some cases are grandchildren) of the aformentioned comp
         - Just as a table within a database, the header row of a table must only contain static values.
             This means that values set by formulas are invalid for a table.
         - A table cannot have header values of `ExcelScript.RangeValueType === richValue`.
+        - Adding data to the row immediately after the table doesn't cause the table to automatically expand to include the new data. The 
+        `.resize(Range | string)` method can be used to expand the range programmatically, but this doesn't seem to hapen automatically.
 - **RangeFormat** &mdash; A format object encapsulating the formatting of the cells within a given range
     - Child of `ExcelScript.Range`.
     - See [ExcelScript.RangeFormat]
@@ -30,7 +33,7 @@ _ARE_ child items (or in some cases are grandchildren) of the aformentioned comp
 
 ---
 ### _Key Methods of [ExcelScript.Range]_
-#### `.getFormulas()`
+##### `.getFormulas()`
 ```TS
 let debugMsg: string;
 (myRange.getFormulas()).forEach((cell) => {debugMsg += cell + '\n';}); 
@@ -38,12 +41,15 @@ debugMsg = debugMsg.split(',').join('\n');
 console.log(debugMsg);
 ```
 
-#### `.getHidden()`
+##### `.getHidden()`
 Returns:
  - `true` if all cells in a range are hidden
  - `false` if no cells in the range are hidden
  - `null` if some cells are hidden
  See also `.getColumnHidden()` and `.getRowHiden()` for similar functionality specific to columns or rows.
+
+##### `.unmerge()` &mdash; unmerges all merged cells in a range object
+
 ---
 
 [//]: # (HIDDEN REFERENCES)

@@ -6,10 +6,10 @@ function main(workbook: ExcelScript.Workbook, targetTblNm: string) {
     let myWorksheet = workbook.getWorksheet('Keys');
     // let myRange = myWorksheet.getRange('A4:CM458')
     let myRange = myWorksheet.getUsedRange(true);
-    //let targetTblNm: string = 'ProductionOrders'; // This will likely be passed in by PowerAutomate later
-    let targetTbl: ExcelScript.Table;
-    console.log('targetTblNm is undefined: ' +(targetTblNm === undefined)); 
-    console.log('targetTblNm is null: '+(targetTblNm === null));
+    if(targetTblNm === undefined){targetTblNm = 'Table1'}; // This will likely be passed in by PowerAutomate later
+    let targetTbl: ExcelScript.Table; // Simply a declaration of the var without a value.
+    // console.log('targetTblNm is undefined: ' +(targetTblNm === undefined)); 
+    // console.log('targetTblNm is null: '+(targetTblNm === null));
     // /* ######################################################################### */
     // /* ########################## TABLE STUFF ################################## */
     // let headerRange = myRange.getRow(0); //myWorksheet.getRange('A4:CM4');

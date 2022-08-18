@@ -7,3 +7,5 @@ A collection of scripts used while experimenting with Excel Online (via Office 3
 
 # Useful Links
 - [Official TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
+- [Call Scripts from a Manual Power Automate Flow](https://docs.microsoft.com/en-us/office/dev/scripts/tutorials/excel-power-automate-manual)
+- [Return Data from a Script to an Automatically-run Power Automate Flow](https://docs.microsoft.com/en-us/office/dev/scripts/tutorials/excel-power-automate-returns)

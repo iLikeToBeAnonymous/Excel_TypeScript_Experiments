@@ -1,8 +1,15 @@
 # Anatomy of an Excel File
 Excel spreadsheets are divided into two primary hierarchical components:
-- **Workbook** &mdash; The Excel file itself
+- **Workbook** &mdash; The Excel file itself ([ExcelScript.Workbook])
 - **Worksheet** &mdash; The individual sheets within the file
+    - Retrievable via [.getWorksheets()] method
 
+```TS
+let sheetNames = workbook.getWorksheets().map((sheet) => sheet.getName());
+console.log(sheetNames);
+```
+
+---
 Worksheets also have several components, but these are not necessarily hierarchical to each other. However, they
 _ARE_ child items (or in some cases are grandchildren) of the aformentioned components.
 - **Range** &mdash; A block of cells (e.g., `A1:C5`)
@@ -60,3 +67,5 @@ Returns:
 [ExcelScript.RangeAreas]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.rangeareas?view=office-scripts>
 [ExcelScript.RangeFormat]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.rangeformat?view=office-scripts>
 [ExcelScript.RangeValueType]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.rangevaluetype?view=office-scripts#excelscript-excelscript-rangevaluetype-richvalue-member>
+[ExcelScript.Workbook]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.workbook?view=office-scripts>
+[.getWorksheets()]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.workbook?view=office-scripts#excelscript-excelscript-workbook-getworksheets-member(1)>

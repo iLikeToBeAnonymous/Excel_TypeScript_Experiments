@@ -11,8 +11,8 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
     console.log('1st visible worksheet of workbook: ' + targetSheetNm); // DEBUGGING
     // let targetRange = myWorksheet.getRange('A4:CM458')
     // let targetRange = myWorksheet.getUsedRange(true);
-    if(targetTblNm === undefined){targetTblNm = 'Table1'}; // This will likely be passed in by PowerAutomate later
     let targetTbl: ExcelScript.Table; // Simply a declaration of the var without a value.
+    if(targetTblNm === undefined){targetTblNm = 'Table1'}; // This will likely be passed in by PowerAutomate later
     // console.log('targetTblNm is undefined: ' +(targetTblNm === undefined)); 
     // console.log('targetTblNm is null: '+(targetTblNm === null));
     /* ######################################################################### */
@@ -26,6 +26,7 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
       convertRangeToTable(myWorksheet, targetRange, targetTblNm); return 'New table created!';// call custom convertRangeToTable() function
     } else { /** We know that worksheet DOES contain more than one table, but we don't know if it contains the one we're looking for */
       console.log('Worksheet contained table count: ' + tableCount + '...')
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     //   let foundTblNm = myWorksheet.getTables()[0].getName(); //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     let dbgMsg: string = ''; myWorksheet.getTables().forEach(tblEle => {dbgMsg += (tblEle.getName()+'\n')}); console.log('Tables found:\n'+dbgMsg);
       targetTblNm = myWorksheet.getTables()[0].getName(); // Fallback if an invalid table name is initially defined

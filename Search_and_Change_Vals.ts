@@ -1,36 +1,33 @@
-function main(workbook: ExcelScript.Workbook, targetTblNm: string) {
+function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm: string, targetRangeAddr: string) {
     // let selectedSheet = workbook.getActiveWorksheet();
     /* https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.workbook?view=office-scripts#excelscript-excelscript-workbook-getselectedrange-member(1) */
-    // let myRange = workbook.getSelectedRange(); console.log('Selected Range: ' + myRange.getAddress());
-    // let myWorksheet = workbook.getWorksheet('Production Orders (3)');
-    let myWorksheet = workbook.getWorksheet('Keys');
-    // let myRange = myWorksheet.getRange('A4:CM458')
-    let myRange = myWorksheet.getUsedRange(true);
+    // let targetRange = workbook.getSelectedRange(); console.log('Selected Range: ' + targetRange.getAddress());
+
+    /* NEXT FEW LINES SET UP DEFAULT PARAMS IF NONE ARE PASSED FROM THE CALLER (POWER AUTOMATE) */
+    if(targetSheetNm === undefined){targetSheetNm = workbook.getFirstWorksheet(true).getName()}; // Default to 1st visible worksheet if none specified
+    let myWorksheet = workbook.getWorksheet(targetSheetNm);
+    let targetRange: ExcelScript.Range; //Declare the variable so it will be in scope for the rest of the script
+    if(targetRangeAddr === undefined){targetRange = myWorksheet.getUsedRange(true);}else{targetRange = myWorksheet.getRange(targetRangeAddr);}
+    console.log('1st visible worksheet of workbook: ' + targetSheetNm); // DEBUGGING
+    // let targetRange = myWorksheet.getRange('A4:CM458')
+    // let targetRange = myWorksheet.getUsedRange(true);
     if(targetTblNm === undefined){targetTblNm = 'Table1'}; // This will likely be passed in by PowerAutomate later
     let targetTbl: ExcelScript.Table; // Simply a declaration of the var without a value.
     // console.log('targetTblNm is undefined: ' +(targetTblNm === undefined)); 
     // console.log('targetTblNm is null: '+(targetTblNm === null));
-    // /* ######################################################################### */
-    // /* ########################## TABLE STUFF ################################## */
-    // let headerRange = myRange.getRow(0); //myWorksheet.getRange('A4:CM4');
-    // myWorksheet.getTables()[0].convertToRange(); //DEBUGGING converts the 0th table of the worksheet back to a range
-    // let debugMsg: string;
-    // (headerRange.getRow(0).getValues())[0].forEach((cell)=>{debugMsg += cell + '\n';});
-    // // (headerRange.getRow(0).getValueTypes())[0].forEach((cell)=>{debugMsg += cell + '\n';});
-    // // (headerRange.getValueTypes()).forEach((cell) => {debugMsg += cell + '\n';}); debugMsg = debugMsg.split(',').join('\n');
-    // // (headerRange.getFormulas()).forEach((cell) => {debugMsg += cell + '\n';}); debugMsg = debugMsg.split(',').join('\n');
-    // console.log(debugMsg);
-  
-    /**FIRST, VERIFY THAT A TABLE EXISTS */
+    /* ######################################################################### */
+    /* ########################## TABLE STUFF ################################## */  
+    /* FIRST, VERIFY THAT A TABLE EXISTS */
     // validateTblHeaders(headerRange);
     let myTables = myWorksheet.getTables(); // Returns an ExcelScript.Table object, 
     let tableCount = myTables.length; // like Array.length, this is the count of entities, so 0 means no tables
     if (tableCount == 0) { // If no tables exist, create one using range defined above
       console.log('No tables in this worksheet!'); // DEBUGGING
-      convertRangeToTable(myWorksheet, myRange, targetTblNm); // call custom convertRangeToTable() function
+      convertRangeToTable(myWorksheet, targetRange, targetTblNm); return 'New table created!';// call custom convertRangeToTable() function
     } else { /** We know that worksheet DOES contain more than one table, but we don't know if it contains the one we're looking for */
       console.log('Worksheet contained table count: ' + tableCount + '...')
-      let foundTblNm = myWorksheet.getTables()[0].getName();
+    //   let foundTblNm = myWorksheet.getTables()[0].getName(); //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    let dbgMsg: string = ''; myWorksheet.getTables().forEach(tblEle => {dbgMsg += (tblEle.getName()+'\n')}); console.log('Tables found:\n'+dbgMsg);
       targetTblNm = myWorksheet.getTables()[0].getName(); // Fallback if an invalid table name is initially defined
       console.log('Table[0] name: ' + targetTblNm);
       /**Use a try-catch to see if you can acquire the table you're looking for by name */
@@ -65,16 +62,26 @@ function main(workbook: ExcelScript.Workbook, targetTblNm: string) {
             ', Col: ' + myWorksheet.getRange(ele).getColumnIndex())
         });
         console.log(debugMsg.join('\n'));
-        targetTbl.getColumn('evntLocation').getFilter().applyValuesFilter(['salt lake city']);
-        // console.log(targetTbl.getColumn('evntLocation').getFilter().getCriteria());
-        let filteredRangeView = targetTbl.getRange().getVisibleView();
-        // console.log(filteredRangeView.getCellAddresses());
-        let targetColumnIndx = targetTbl.getColumn('registrationAmount').getRange().getColumnIndex();
-        console.log('target column index: ' + targetColumnIndx);
-        // console.log(filteredRangeView.getRows());
-        // console.log(filteredRangeView.getValues()); // The filtered table values (including headers)
-        // console.log(JSON.stringify(rangeToJsonObj(filteredRangeView.getRange()),null,2));
+
+        //################################################################\\
+        //################# PLAYING WITH FILTERS #########################\\
+        targetTbl.clearFilters(); /* JUST TO MAKE SURE THERE ARE NO FILTERS INTERFERING WITH THINGS. */
+        // targetTbl.getColumn('evntLocation').getFilter().applyValuesFilter(['salt lake city']);
+        // // console.log(targetTbl.getColumn('evntLocation').getFilter().getCriteria());
+        // let filteredRangeView = targetTbl.getRange().getVisibleView();
+        // // console.log(filteredRangeView.getCellAddresses());
+        // let targetColumnIndx = targetTbl.getColumn('registrationAmount').getRange().getColumnIndex();
+        // console.log('target column index: ' + targetColumnIndx);
+        // // console.log(filteredRangeView.getRows());
+        // // console.log(filteredRangeView.getValues()); // The filtered table values (including headers)
+        // // console.log(JSON.stringify(rangeToJsonObj(filteredRangeView.getRange()),null,2));
+        //############## END PLAYING WITH FILTERS ########################\\
+        //################################################################\\
         // // END ADDRESS OF ROWS WHEREIN A SPECIFIC COLUMN CONTAINS A SPECIFIC VALUE
+
+        /* BELOW LINE JUST CONVERTS THE ENTIRE TABLE TO A JSON OBJECT AND RETURNS IT TO THE
+           CALLING FUNCTION (IN THIS CASE, POWER AUTOMATE)                                  */
+        return (JSON.stringify(rangeToJsonObj(targetTbl.getRange()),null,2));
   
         //################################################################\\
         // let tblBodyRange = targetTbl.getRangeBetweenHeaderAndTotal();
@@ -121,12 +128,12 @@ function main(workbook: ExcelScript.Workbook, targetTblNm: string) {
     laration: number
   }
   
-  function convertRangeToTable(myWorksheet: ExcelScript.Worksheet, myRange: ExcelScript.Range, newTblName: string) {
+  function convertRangeToTable(myWorksheet: ExcelScript.Worksheet, targetRange: ExcelScript.Range, newTblName: string) {
     // SPLIT ALL MERGED AREAS BEFORE ATTEMPTING TO CONVERT TO A TABLE
-    splitMergedAreas(myRange);
+    splitMergedAreas(targetRange);
     // MAKE SURE THE RANGE HAS VALID HEADERS, AND CONVERT IF NECESSARY
-    validateTblHeaders(myRange.getRow(0)); // SHOULD always make the header row valid...
-    let myNewTable = myWorksheet.addTable(myRange, true); // "true" that it has headers
+    validateTblHeaders(targetRange.getRow(0)); // SHOULD always make the header row valid...
+    let myNewTable = myWorksheet.addTable(targetRange, true); // "true" that it has headers
     myNewTable.setName(newTblName);
   
   };
@@ -155,33 +162,33 @@ function main(workbook: ExcelScript.Workbook, targetTblNm: string) {
     };
   };
   
-  function splitMergedAreas(myRange: ExcelScript.Range) {
+  function splitMergedAreas(targetRange: ExcelScript.Range) {
     /** Check for merged areas, which will prevent table creation... 
      * https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.range?view=office-scripts#excelscript-excelscript-range-getmergedareas-member(1)
      * https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.rangeareas?view=office-scripts#excelscript-excelscript-rangeareas-getareacount-member(1)
      */
-    if (myRange.getMergedAreas() != null) {
+    if (targetRange.getMergedAreas() != null) {
       console.log('Found merged areas!');
-      console.log('Number of merged areas: ' + myRange.getMergedAreas().getAreaCount());
-      myRange.unmerge();
+      console.log('Number of merged areas: ' + targetRange.getMergedAreas().getAreaCount());
+      targetRange.unmerge();
     } else { console.log('No merged areas found') };
   
-    // myRange.getFilter().clear();
-    console.log('Top Row Addresses: ' + myRange.getRow(0).getAddress() +
-      '\n     Column Count: ' + myRange.getColumnCount() +
-      '\n        Row Count: ' + myRange.getRowCount());
+    // targetRange.getFilter().clear();
+    console.log('Top Row Addresses: ' + targetRange.getRow(0).getAddress() +
+      '\n     Column Count: ' + targetRange.getColumnCount() +
+      '\n        Row Count: ' + targetRange.getRowCount());
   };
   
-  function rangeToJsonObj(myRange: ExcelScript.Range) {
+  function rangeToJsonObj(targetRange: ExcelScript.Range) {
     /*  While the below JSON.stringify works, it basically just returns an array of arrays, NOT 
         a proper JSON object formatted as a string... */
   
     /* Assume that index 0 of the topmost array contains the column headers, so just pull the column headers.. */
-    let headerRowVals = myRange.getValues()[0];
+    let headerRowVals = targetRange.getValues()[0];
   
     /* Next, pull the entire range of data values, excluding the header row (assumed to be the zeroth row). By 
        using slice(), you retrieve everything BUT the header row. */
-    let sheetVals = myRange.getValues().slice(1);
+    let sheetVals = targetRange.getValues().slice(1);
   
     // console.log(sheetVals);
     // console.log(headerRowVals.join(', '));

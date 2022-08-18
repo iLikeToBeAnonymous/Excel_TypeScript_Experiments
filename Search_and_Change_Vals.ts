@@ -29,12 +29,16 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
       console.log('No tables in this worksheet!'); // DEBUGGING
       convertRangeToTable(myWorksheet, targetRange, targetTblNm); return 'New table created!';// call custom convertRangeToTable() function
     } else { /** We know that worksheet DOES contain more than one table, but we don't know if it contains the one we're looking for */
-      console.log('Worksheet contained table count: ' + tableCount + '...')
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    //   let foundTblNm = myWorksheet.getTables()[0].getName(); //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    let dbgMsg: string = ''; myWorksheet.getTables().forEach(tblEle => {dbgMsg += (tblEle.getName()+'\n')}); console.log('Tables found:\n'+dbgMsg);
-      targetTblNm = myWorksheet.getTables()[0].getName(); // Fallback if an invalid table name is initially defined
-      console.log('Table[0] name: ' + targetTblNm);
+      console.log('Worksheet table count: ' + tableCount + '...'); // DEBUGGING
+      /* CHECK IF targetTblNm IS A VALID TABLE IN THE WORKSHEET */
+      let tblsFound: Array<string | number> = myTables.map(eachTbl => eachTbl.getName()); console.log('tblsFound:\n\t'+tblsFound.join('\n\t'));
+      /* IF THE WORKSHEET DOES CONTAIN TABLES, BUT NONE BY THE NAME PASSED TO THIS SCRIPT, 
+       * ATTEMPT TO PROCEED BY FALLING BACK TO THE FIRST TABLE FOUND IN THE WORKSHEET...  */
+      if(!tblsFound.includes(targetTblNm)){ 
+        console.log(`targetTblNm '${targetTblNm}' not found...\nUsing first found table, '${tblsFound[0]}' instead...`);
+        targetTblNm = String(tblsFound[0]);//myWorksheet.getTables()[0].getName();
+      }; 
+      // console.log('Table[0] name: ' + targetTblNm); // DEBUGGING
       /**Use a try-catch to see if you can acquire the table you're looking for by name */
       try { targetTbl = myWorksheet.getTable(targetTblNm) } catch{ console.log(`Table "${targetTblNm}" cannot be acquired!`) };
       if (targetTbl != null) { /** .getTable returns null if table can't be acquired */
@@ -44,7 +48,7 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
         // // targetTbl.getColumns().forEach(col => { debugMsg.push('\t'+col.getName()) }); 
         // // console.log('Column Names: \n'+debugMsg.join('\n')); // DEBUGGING
         // console.log('Column Names: \n\t'+targetTbl.getHeaderRowRange().getValues()[0].join('\n\t'));
-        let columnNames = targetTbl.getHeaderRowRange().getValues()[0]; console.log(columnNames);
+        let columnNames = targetTbl.getHeaderRowRange().getValues()[0]; console.log(`Columns found:\n\t${columnNames}`);
         // // BELOW SECTION TURNS THE ENTIRE TABLE INTO A FORMATTED STRING
         // debugMsg.length = 0; // clear the array for the next use
         // debugMsg.push('Table as formatted string (range is: '+targetTbl.getRange().getAddress() + ')' );
@@ -61,12 +65,12 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
            displaying. */
         let matchingCells = (myWorksheet.findAll('salt lake', { completeMatch: false }).getAddress()).split(',')
         debugMsg.length = 0; // clear the array for the next use
-        console.log(matchingCells);
+        debugMsg.push('Addresses of ALL matches in worksheet:');// console.log(matchingCells);
         matchingCells.forEach((ele)=>{
-          debugMsg.push('Row: ' + myWorksheet.getRange(ele).getRowIndex() +
+          debugMsg.push('\n\tRow: ' + myWorksheet.getRange(ele).getRowIndex() +
             ', Col: ' + myWorksheet.getRange(ele).getColumnIndex())
         });
-        console.log(debugMsg.join('\n'));
+        console.log(debugMsg.join(''));
 
         //################################################################\\
         //################# PLAYING WITH FILTERS #########################\\

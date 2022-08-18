@@ -62,12 +62,12 @@ function rangeToJsonObj(myRange: ExcelScript.Range) {
     // console.log(sheetVals);
     // console.log(headerRowVals.join(', '));
 
-    let jsonArray: Array<string | number | object> = []; //This is clunky, but it's the only way the compiler doesn't complain.
+    let jsonArray: Array<JSON> = []; //This is clunky, but it's the only way the compiler doesn't complain.
     let rowCtr: number = 0; // WHILE EXCEL STARTS NUMBERING ROWS AT 1, FOR OUR PURPOSES, WE'LL NUMBER AT 0
     let rowLimit: number = sheetVals.length;
     // let rowLimit: number = 3; //DEBUGGING ONLY
     while (rowCtr < rowLimit) {
-        jsonArray.push({}); //PUSH AN EMPTY OBJECT ONTO THE ARRAY
+        jsonArray.push(JSON.parse('{}')); //PUSH AN EMPTY OBJECT ONTO THE ARRAY
         /* sheetVals[rowCtr] defines which row of the sheet range. The zero-based row number of the sheet range
            corresponds to the index of the jsonArray into which we'll insert the object representing that row. */
         sheetVals[rowCtr].forEach((cellItem: string, indx: number) => {

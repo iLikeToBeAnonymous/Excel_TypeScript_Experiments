@@ -15,9 +15,9 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
     // let targetRange = myWorksheet.getRange('A4:CM458')
     // let targetRange = myWorksheet.getUsedRange(true);
     let targetTbl: ExcelScript.Table; // Simply a declaration of the var without a value.
-    if(targetTblNm === undefined){targetTblNm = 'Table1'}; // This will likely be passed in by PowerAutomate later
-    // console.log('targetTblNm is undefined: ' +(targetTblNm === undefined)); 
-    // console.log('targetTblNm is null: '+(targetTblNm === null));
+    /* If targetTblNm is NOT passed in from Power Automate... */
+    if(targetTblNm === undefined){targetTblNm = 'Table1'}; // This should be passed in from Power Automate
+
     /* ###################### END DEFAULT PARAM SETUP ########################## */
     /* ######################################################################### */
     /* ########################## TABLE STUFF ################################## */  

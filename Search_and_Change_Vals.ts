@@ -1,13 +1,16 @@
 function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm: string, targetRangeAddr: string) {
-    // let selectedSheet = workbook.getActiveWorksheet();
     /* https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.workbook?view=office-scripts#excelscript-excelscript-workbook-getselectedrange-member(1) */
-    // let targetRange = workbook.getSelectedRange(); console.log('Selected Range: ' + targetRange.getAddress());
 
+    /* ###################### BEGIN DEFAULT PARAM SETUP ######################## */
     /* NEXT FEW LINES SET UP DEFAULT PARAMS IF NONE ARE PASSED FROM THE CALLER (POWER AUTOMATE) */
-    if(targetSheetNm === undefined){targetSheetNm = workbook.getFirstWorksheet(true).getName()}; // Default to 1st visible worksheet if none specified
+    if(targetSheetNm === undefined){targetSheetNm = workbook.getFirstWorksheet(true).getName()}; // Default to first visible worksheet if none specified
     let myWorksheet = workbook.getWorksheet(targetSheetNm);
     let targetRange: ExcelScript.Range; //Declare the variable so it will be in scope for the rest of the script
-    if(targetRangeAddr === undefined){targetRange = myWorksheet.getUsedRange(true);}else{targetRange = myWorksheet.getRange(targetRangeAddr);}
+    if(targetRangeAddr === undefined){
+        targetRange = myWorksheet.getUsedRange(true);
+    }else{
+        targetRange = myWorksheet.getRange(targetRangeAddr);
+    }
     console.log('1st visible worksheet of workbook: ' + targetSheetNm); // DEBUGGING
     // let targetRange = myWorksheet.getRange('A4:CM458')
     // let targetRange = myWorksheet.getUsedRange(true);
@@ -15,6 +18,7 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
     if(targetTblNm === undefined){targetTblNm = 'Table1'}; // This will likely be passed in by PowerAutomate later
     // console.log('targetTblNm is undefined: ' +(targetTblNm === undefined)); 
     // console.log('targetTblNm is null: '+(targetTblNm === null));
+    /* ###################### END DEFAULT PARAM SETUP ########################## */
     /* ######################################################################### */
     /* ########################## TABLE STUFF ################################## */  
     /* FIRST, VERIFY THAT A TABLE EXISTS */

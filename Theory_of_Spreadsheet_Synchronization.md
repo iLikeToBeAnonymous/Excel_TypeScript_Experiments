@@ -37,6 +37,12 @@ _ARE_ child items (or in some cases are grandchildren) of the aformentioned comp
         - `Range.getValueTypes()` &mdash; returns a 2D array, the contents of each index being
              [ExcelScript.RangeValueType]. 
             - Possible values are _boolean_, _double_, _empty_, _error_, _integer_, _richValue_, _string_, and _unknown_
+- **TableColumn** &mdash; A specialized object representing a column of an [ExcelScript.Table] object
+    - Only available on a defined table in a worksheet
+    - Retrievable by calling the [.getColumn('key')] method on a Table object (wherein `key` can be either a column name or a column ID)
+    - See [ExcelScript.TableColumn] object
+- **Filter** &mdash; A child interface to an [ExcelScript.TableColumn] object.
+    - See [ExcelScript.Filter]
 
 ---
 ### _Key Methods of [ExcelScript.Range]_
@@ -69,3 +75,6 @@ Returns:
 [ExcelScript.RangeValueType]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.rangevaluetype?view=office-scripts#excelscript-excelscript-rangevaluetype-richvalue-member>
 [ExcelScript.Workbook]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.workbook?view=office-scripts>
 [.getWorksheets()]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.workbook?view=office-scripts#excelscript-excelscript-workbook-getworksheets-member(1)>
+[.getColumn('key')]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.table?view=office-scripts#excelscript-excelscript-table-getcolumn-member(1)>
+[ExcelScript.TableColumn]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.tablecolumn?view=office-scripts>
+[ExcelScript.Filter]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.filter?view=office-scripts>

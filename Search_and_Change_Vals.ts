@@ -1,6 +1,6 @@
 function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm: string, targetRangeAddr: string) {
     /* https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.workbook?view=office-scripts#excelscript-excelscript-workbook-getselectedrange-member(1) */
-
+    
     /* ###################### BEGIN DEFAULT PARAM SETUP ######################## */
     /* NEXT FEW LINES SET UP DEFAULT PARAMS IF NONE ARE PASSED FROM THE CALLER (POWER AUTOMATE) */
     if(targetSheetNm === undefined){targetSheetNm = workbook.getFirstWorksheet(true).getName()}; // Default to first visible worksheet if none specified
@@ -18,6 +18,8 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
     /* If targetTblNm is NOT passed in from Power Automate... */
     if(targetTblNm === undefined){targetTblNm = 'Table1'}; // This should be passed in from Power Automate
 
+    let indicatorColNm: string = 'evntLocation';
+    let searchTerm: string = 'salt lake';
     /* ###################### END DEFAULT PARAM SETUP ########################## */
     /* ######################################################################### */
     /* ########################## TABLE STUFF ################################## */  
@@ -57,28 +59,32 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
         //   }); console.log(debugMsg.join('\n'));
         // // END TABLE AS STRING
   
-        // // FIND ADDRESS OF ROWS WHEREIN A SPECIFIC COLUMN CONTAINS A SPECIFIC VALUE
-           // Unfortunately, the below line only returns the first hit
-        // console.log(targetTbl.getColumn('evntLocation').getRange().find('salt lake',{completeMatch: false}).getAddress())
+        targetTbl.clearFilters(); /* JUST TO MAKE SURE THERE ARE NO FILTERS INTERFERING WITH THINGS. */
+        /* FIND ADDRESS OF ROWS WHEREIN A SPECIFIC COLUMN CONTAINS A SPECIFIC VALUE
+         * Unfortunately, the below line only returns the first hit */
+        // console.log(targetTbl.getColumn(indicatorColNm).getRange().find(searchTerm,{completeMatch: false}).getAddress())
         /* Below returns a stringified array of addresses matching the search criteria. However,
            the below line is "undefined" if a filter is already in-place that excludes the results from 
            displaying. */
-        let matchingCells = (myWorksheet.findAll('salt lake', { completeMatch: false }).getAddress()).split(',')
+        let matchingCells = myWorksheet.findAll(searchTerm, { completeMatch: false }).getAddress().split(',')
         debugMsg.length = 0; // clear the array for the next use
+        let tempRange: ExcelScript.Range; let indicatorColIndx = columnNames.indexOf(indicatorColNm);
         debugMsg.push('Addresses of ALL matches in worksheet:');// console.log(matchingCells);
         matchingCells.forEach((ele)=>{
-          debugMsg.push('\n\tRow: ' + myWorksheet.getRange(ele).getRowIndex() +
+          tempRange = myWorksheet.getRange(ele);
+          if(tempRange.getColumnIndex() == indicatorColIndx){
+            debugMsg.push('\n\tRow: ' + myWorksheet.getRange(ele).getRowIndex() +
             ', Col: ' + myWorksheet.getRange(ele).getColumnIndex())
+          }
         });
         console.log(debugMsg.join(''));
 
         //################################################################\\
         //################# PLAYING WITH FILTERS #########################\\
-        targetTbl.clearFilters(); /* JUST TO MAKE SURE THERE ARE NO FILTERS INTERFERING WITH THINGS. */
-        // targetTbl.getColumn('evntLocation').getFilter().applyValuesFilter(['salt lake city']);
-        // // console.log(targetTbl.getColumn('evntLocation').getFilter().getCriteria());
+        // targetTbl.getColumn(indicatorColNm).getFilter().applyValuesFilter(['salt lake city']);
+        // // console.log(targetTbl.getColumn(indicatorColNm).getFilter().getCriteria());
         // let filteredRangeView = targetTbl.getRange().getVisibleView();
-        // // console.log(filteredRangeView.getCellAddresses());
+        // console.log(filteredRangeView.getCellAddresses());
         // let targetColumnIndx = targetTbl.getColumn('registrationAmount').getRange().getColumnIndex();
         // console.log('target column index: ' + targetColumnIndx);
         // // console.log(filteredRangeView.getRows());
@@ -90,7 +96,7 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
 
         /* BELOW LINE JUST CONVERTS THE ENTIRE TABLE TO A JSON OBJECT AND RETURNS IT TO THE
            CALLING FUNCTION (IN THIS CASE, POWER AUTOMATE)                                  */
-        return (JSON.stringify(rangeToJsonObj(targetTbl.getRange()),null,2));
+        // return (JSON.stringify(rangeToJsonObj(targetTbl.getRange()),null,2));
   
         //################################################################\\
         // let tblBodyRange = targetTbl.getRangeBetweenHeaderAndTotal();

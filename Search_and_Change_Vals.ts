@@ -44,88 +44,45 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
       /**Use a try-catch to see if you can acquire the table you're looking for by name */
       try { targetTbl = myWorksheet.getTable(targetTblNm) } catch{ console.log(`Table "${targetTblNm}" cannot be acquired!`) };
       if (targetTbl != null) { /** .getTable returns null if table can't be acquired */
+
         /** ################################################### */
-        /** ######### BEGIN WORKING ON VERIFIED TABLE ######### */
-        let debugMsg: Array<string | number | boolean | object> = [];
-        // // targetTbl.getColumns().forEach(col => { debugMsg.push('\t'+col.getName()) }); 
-        // // console.log('Column Names: \n'+debugMsg.join('\n')); // DEBUGGING
-        // console.log('Column Names: \n\t'+targetTbl.getHeaderRowRange().getValues()[0].join('\n\t'));
-        let columnNames = targetTbl.getHeaderRowRange().getValues()[0]; console.log(`Columns found:\n\t${columnNames}`);
-        // // BELOW SECTION TURNS THE ENTIRE TABLE INTO A FORMATTED STRING
+        /** #################  FILTER AS JSON ################# */  
+        let myJsonObj: Array<JSON> = rangeToJsonObj(targetTbl.getRange());
+        let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm] == 'Salt Lake City');
+        console.log(JSON.stringify(searchRez,null,2));
+        /** ############### END FILTER AS JSON ################ */
+        /** ################################################### */
+      
+        /** ################################################### */
+        /** ######### BEGIN FILTERING VERIFIED TABLE ######### */
+        // let debugMsg: Array<string | number | boolean | object> = [];
+        // // // targetTbl.getColumns().forEach(col => { debugMsg.push('\t'+col.getName()) }); 
+        // // // console.log('Column Names: \n'+debugMsg.join('\n')); // DEBUGGING
+        // // console.log('Column Names: \n\t'+targetTbl.getHeaderRowRange().getValues()[0].join('\n\t'));
+        // let columnNames = targetTbl.getHeaderRowRange().getValues()[0]; console.log(`Columns found:\n\t${columnNames}`);
+  
+        // targetTbl.clearFilters(); /* JUST TO MAKE SURE THERE ARE NO FILTERS INTERFERING WITH THINGS. */
+        // /* FIND ADDRESS OF ROWS WHEREIN A SPECIFIC COLUMN CONTAINS A SPECIFIC VALUE
+        //  * Unfortunately, the below line only returns the first hit */
+        // // console.log(targetTbl.getColumn(indicatorColNm).getRange().find(searchTerm,{completeMatch: false}).getAddress())
+        // /* Below returns a stringified array of addresses matching the search criteria. However,
+        //    the below line is "undefined" if a filter is already in-place that excludes the results from 
+        //    displaying. */
+        // let matchingCells = myWorksheet.findAll(searchTerm, { completeMatch: false }).getAddress().split(',')
         // debugMsg.length = 0; // clear the array for the next use
-        // debugMsg.push('Table as formatted string (range is: '+targetTbl.getRange().getAddress() + ')' );
-        // targetTbl.getRange().getValues().forEach(row => {
-        //     debugMsg.push('\t'+row.join(',\t\t'))
-        //   }); console.log(debugMsg.join('\n'));
-        // // END TABLE AS STRING
-  
-        targetTbl.clearFilters(); /* JUST TO MAKE SURE THERE ARE NO FILTERS INTERFERING WITH THINGS. */
-        /* FIND ADDRESS OF ROWS WHEREIN A SPECIFIC COLUMN CONTAINS A SPECIFIC VALUE
-         * Unfortunately, the below line only returns the first hit */
-        // console.log(targetTbl.getColumn(indicatorColNm).getRange().find(searchTerm,{completeMatch: false}).getAddress())
-        /* Below returns a stringified array of addresses matching the search criteria. However,
-           the below line is "undefined" if a filter is already in-place that excludes the results from 
-           displaying. */
-        let matchingCells = myWorksheet.findAll(searchTerm, { completeMatch: false }).getAddress().split(',')
-        debugMsg.length = 0; // clear the array for the next use
-        let tempRange: ExcelScript.Range; let indicatorColIndx = columnNames.indexOf(indicatorColNm);
-        debugMsg.push('Addresses of ALL matches in worksheet:');// console.log(matchingCells);
-        matchingCells.forEach((ele)=>{
-          tempRange = myWorksheet.getRange(ele);
-          if(tempRange.getColumnIndex() == indicatorColIndx){
-            debugMsg.push('\n\tRow: ' + myWorksheet.getRange(ele).getRowIndex() +
-            ', Col: ' + myWorksheet.getRange(ele).getColumnIndex())
-          }
-        });
-        console.log(debugMsg.join(''));
-
-        //################################################################\\
-        //################# PLAYING WITH FILTERS #########################\\
-        // targetTbl.getColumn(indicatorColNm).getFilter().applyValuesFilter(['salt lake city']);
-        // // console.log(targetTbl.getColumn(indicatorColNm).getFilter().getCriteria());
-        // let filteredRangeView = targetTbl.getRange().getVisibleView();
-        // console.log(filteredRangeView.getCellAddresses());
-        // let targetColumnIndx = targetTbl.getColumn('registrationAmount').getRange().getColumnIndex();
-        // console.log('target column index: ' + targetColumnIndx);
-        // // console.log(filteredRangeView.getRows());
-        // // console.log(filteredRangeView.getValues()); // The filtered table values (including headers)
-        // // console.log(JSON.stringify(rangeToJsonObj(filteredRangeView.getRange()),null,2));
-        //############## END PLAYING WITH FILTERS ########################\\
-        //################################################################\\
-        // // END ADDRESS OF ROWS WHEREIN A SPECIFIC COLUMN CONTAINS A SPECIFIC VALUE
-
-        /* BELOW LINE JUST CONVERTS THE ENTIRE TABLE TO A JSON OBJECT AND RETURNS IT TO THE
-           CALLING FUNCTION (IN THIS CASE, POWER AUTOMATE)                                  */
-        // return (JSON.stringify(rangeToJsonObj(targetTbl.getRange()),null,2));
-  
-        //################################################################\\
-        // let tblBodyRange = targetTbl.getRangeBetweenHeaderAndTotal();
-        // // console.log(JSON.stringify(rangeToJsonObj(targetTbl.getRange()), null, 2));
-        // let rows = tblBodyRange.getValues();
-        // console.log('Row 0: \n' + rows[0]);
-        // // targetTbl.getColumnByName('Date').setName('Better Be There!');
-        // let records: EventData[] = [];
-        // for (let row of rows) {
-        //   /** The following "let" declaraction is an array of variables, the values of which correspond
-        //    *  to the values of the individual row */
-        //   // let [madeUpKeys, anythingGoes, useUrImagination, nameMeButDontUseMe, mebbe] = row;
-        //   let [eventID, evntDate, evntLocation, nameMeButDontUseMe, spkrSlots] = row;
-        //   debugMsg.push(row);// = row;
-        //   if (evntDate == 43892){records.push({
-        //     theseMust: eventID as string,
-        //     matchThe: evntDate as number,
-        //     interfaceDec: evntLocation as string,
-        //     laration: spkrSlots as number
-        //   })}
-        // }
-        // console.log(JSON.stringify(records,null,2))
-        //################################################################\\
-  
-        // console.log('The Table says its header address range is: ' + targetTbl.getHeaderRowRange().getAddress() + 
-        //     '\nTable has a range of: ' + targetTbl.getRange().getAddress() + 
-        //     '\nRange between header and total row: ' + targetTbl.getRangeBetweenHeaderAndTotal().getAddress()); 
-        /** ########## END WORKING ON VERIFIED TABLE ########## */
+        // let tempRange: ExcelScript.Range; let indicatorColIndx = columnNames.indexOf(indicatorColNm);
+        // debugMsg.push('Addresses of ALL matches in worksheet:');// console.log(matchingCells);
+        // matchingCells.forEach((ele)=>{
+        //   tempRange = myWorksheet.getRange(ele);
+        //   if(tempRange.getColumnIndex() == indicatorColIndx){
+        //     debugMsg.push('\n\tRow: ' + myWorksheet.getRange(ele).getRowIndex() +
+        //     ', Col: ' + myWorksheet.getRange(ele).getColumnIndex())
+        //   }
+        // });
+        // console.log(debugMsg.join(''));
+        /** ########## END FILTERING VERIFIED TABLE ########## */
         /** ################################################### */
+
       } else if (targetTbl == null) {
         console.log(`The table "${targetTblNm}" can neither be found nor created!`);
       } else { console.log('He\'s dead, Jim!') };
@@ -208,12 +165,12 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
     // console.log(sheetVals);
     // console.log(headerRowVals.join(', '));
   
-    let jsonArray: Array<string | number | object> = []; //This is clunky, but it's the only way the compiler doesn't complain.
+    let jsonArray: Array<JSON> = []; //This is clunky, but it's the only way the compiler doesn't complain.
     let rowCtr: number = 0; // WHILE EXCEL STARTS NUMBERING ROWS AT 1, FOR OUR PURPOSES, WE'LL NUMBER AT 0
     let rowLimit: number = sheetVals.length;
     // let rowLimit: number = 3; //DEBUGGING ONLY
     while (rowCtr < rowLimit) {
-      jsonArray.push({}); //PUSH AN EMPTY OBJECT ONTO THE ARRAY
+      jsonArray.push(JSON.parse('{}')); //PUSH AN EMPTY OBJECT ONTO THE ARRAY
       /* sheetVals[rowCtr] defines which row of the sheet range. The zero-based row number of the sheet range
          corresponds to the index of the jsonArray into which we'll insert the object representing that row. */
       sheetVals[rowCtr].forEach((cellItem: string, indx: number) => {

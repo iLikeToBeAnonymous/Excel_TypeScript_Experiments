@@ -19,7 +19,14 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
     if(targetTblNm === undefined){targetTblNm = 'Table1'}; // This should be passed in from Power Automate
 
     let indicatorColNm: string = 'evntLocation';
-    let searchTerm: string = 'salt lake';
+    let searchTerm: string = 'lake';
+    /* To account for search strings with weird or invalid chars, you must first use a regular expression
+     * before you can convert it to a regular expression... (Yes, I wrote that correctly). The following answer
+     * was found in a post by user "Rivenfall" on StackOverflow (https://stackoverflow.com/a/35478115). He referenced
+     * the Github repo here: https://github.com/sindresorhus/escape-string-regexp
+     *  */
+    searchTerm = searchTerm.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
+    const srchRegex: RegExp = new RegExp(`${searchTerm}`, 'gi');
     /* ###################### END DEFAULT PARAM SETUP ########################## */
     /* ######################################################################### */
     /* ########################## TABLE STUFF ################################## */  
@@ -48,7 +55,8 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
         /** ################################################### */
         /** #################  FILTER AS JSON ################# */  
         let myJsonObj: Array<JSON> = rangeToJsonObj(targetTbl.getRange());
-        let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm] == 'Salt Lake City');
+        // let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm] == 'Salt Lake City');
+        let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm].match(srchRegex));
         console.log(JSON.stringify(searchRez,null,2));
         /** ############### END FILTER AS JSON ################ */
         /** ################################################### */

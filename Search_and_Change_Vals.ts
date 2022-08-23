@@ -1,4 +1,4 @@
-function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm: string, targetRangeAddr: string) {
+function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm: string, targetRangeAddr: string, searchTerm: string) {
     /* https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.workbook?view=office-scripts#excelscript-excelscript-workbook-getselectedrange-member(1) */
     
     /* ###################### BEGIN DEFAULT PARAM SETUP ######################## */
@@ -19,14 +19,18 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
     if(targetTblNm === undefined){targetTblNm = 'Table1'}; // This should be passed in from Power Automate
 
     let indicatorColNm: string = 'evntLocation';
-    let searchTerm: string = 'lake';
-    /* To account for search strings with weird or invalid chars, you must first use a regular expression
-     * before you can convert it to a regular expression... (Yes, I wrote that correctly). The following answer
-     * was found in a post by user "Rivenfall" on StackOverflow (https://stackoverflow.com/a/35478115). He referenced
-     * the Github repo here: https://github.com/sindresorhus/escape-string-regexp
-     *  */
-    searchTerm = searchTerm.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
-    const srchRegex: RegExp = new RegExp(`${searchTerm}`, 'gi');
+    /* Valid regular expressions can be passed directly to the RegExp constructor as a string. The only limitation of this
+     * is that the backslash char ("\") is the escape character for strings, so any instance of a backslash must be doubled
+     * for it to actually be saved in the variable. */
+    if(searchTerm === undefined){searchTerm = '^[\\w\\n\\s]+.*'} // Basically, a regex for the value not being null
+    // /* To account for search strings with weird or invalid chars, you must first use a regular expression
+    //  * before you can convert it to a regular expression... (Yes, I wrote that correctly). The following answer
+    //  * was found in a post by user "Rivenfall" on StackOverflow (https://stackoverflow.com/a/35478115). He referenced
+    //  * the Github repo here: https://github.com/sindresorhus/escape-string-regexp
+    //  * See also the MDN entry: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping */
+    // searchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); /* A pair of backslashes can also be inserted via String.fromCharCode(92, 92)); */
+    const srchRegex: RegExp = new RegExp(searchTerm, 'gi');
+    console.log(srchRegex.source); //DEBUGGING
     /* ###################### END DEFAULT PARAM SETUP ########################## */
     /* ######################################################################### */
     /* ########################## TABLE STUFF ################################## */  

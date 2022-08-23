@@ -60,7 +60,7 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
         /** #################  FILTER AS JSON ################# */  
         let myJsonObj: Array<JSON> = rangeToJsonObj(targetTbl.getRange());
         // let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm] == 'Salt Lake City');
-        let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm].match(srchRegex));
+        let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm]['Val'].match(srchRegex));//let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm].match(srchRegex));
         console.log(JSON.stringify(searchRez,null,2));
         /** ############### END FILTER AS JSON ################ */
         /** ################################################### */
@@ -166,7 +166,7 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
   function rangeToJsonObj(targetRange: ExcelScript.Range) {
     /*  While the below JSON.stringify works, it basically just returns an array of arrays, NOT 
         a proper JSON object formatted as a string... */
-  
+    let myWorksheet = targetRange.getWorksheet();
     /* Assume that index 0 of the topmost array contains the column headers, so just pull the column headers.. */
     let headerRowVals = targetRange.getValues()[0];
   
@@ -189,7 +189,16 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
         /* jsonArray[rowCtr] is the index of the jsonArray at which the object for the row is stored
            headerRowVals[indx] is the column title, but the compiler doesn't like this value unless it is
            explicitly converted to a string value.  */
-        jsonArray[rowCtr][String(headerRowVals[indx])] = cellItem;
+        // jsonArray[rowCtr][String(headerRowVals[indx])] = cellItem;
+        jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': targetRange.getCell(rowCtr, indx).getAddress()};
+        // DEBUGGING BELOW (BUT DOESN'T WORK IF targetRange DOES NOT START AT CELL A1)
+        // console.log('ObjKey: ' + String(headerRowVals[indx])+
+        // '\n\tRow: '+rowCtr+' ColIndx: '+indx+' Val: '+cellItem+'\n\tRetrievedAddress: '+
+        // myWorksheet.getRangeByIndexes(rowCtr,indx,1,1).getAddress()
+        // );
+        /* BELOW LINE USES THE LOCAL ROW AND COLUMN OF THE RANGE 
+         * OBJECT TO THE GLOBAL ADDRESS OF THE INDIVIDUAL ELEMENTS */
+        // console.log('Addr: ' + targetRange.getCell(rowCtr,indx).getAddress());
       });
   
       rowCtr++; // Advance to the next row of the sheet.

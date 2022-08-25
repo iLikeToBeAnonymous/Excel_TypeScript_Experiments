@@ -17,6 +17,7 @@ _ARE_ child items (or in some cases are grandchildren) of the aformentioned comp
     - Selected cells can encompass the entire worksheet, or they can technically be a single cell.
     - Retrieving a range by address (e.g., the `A1:C5` shown above) is a method exclusive to `ExcelScript.Worksheet.getRange(address?: string)`.
     - See [ExcelScript.Range] object
+    - For cool peek under the hood, see the [Github ExcelScript.Range.yml]
 - **RangeAreas** &mdash; An object that is a collection of one or more rectangular ranges in the same worksheet
     - Child of [ExcelScript.Worksheet] (can be a sibling or a child of the `Range` object)?
     - See [ExcelScript.RangeAreas]
@@ -78,3 +79,4 @@ Returns:
 [.getColumn('key')]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.table?view=office-scripts#excelscript-excelscript-table-getcolumn-member(1)>
 [ExcelScript.TableColumn]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.tablecolumn?view=office-scripts>
 [ExcelScript.Filter]: <https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.filter?view=office-scripts>
+[Github ExcelScript.Range.yml]: <https://github.com/OfficeDev/office-scripts-docs-reference/blob/main/docs/docs-ref-autogen/excel/excelscript/excelscript.range.yml>

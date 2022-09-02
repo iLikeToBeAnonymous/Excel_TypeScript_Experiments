@@ -61,6 +61,7 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
         let myJsonObj: Array<JSON> = rangeToJsonObj(targetTbl.getRange());
         // let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm] == 'Salt Lake City');
         let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm]['Val'].match(srchRegex));//let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm].match(srchRegex));
+        console.log(`For a worksheet, R/C refs start counting at zero.\n\tTherefore, the val of R1, C3 is: ${myWorksheet.getCell(1,3).getValue()}`)
         console.log(JSON.stringify(searchRez,null,2));
         /** ############### END FILTER AS JSON ################ */
         /** ################################################### */
@@ -164,12 +165,13 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
   };
   
   function rangeToJsonObj(targetRange: ExcelScript.Range) {
-    /*  While the below JSON.stringify works, it basically just returns an array of arrays, NOT 
-        a proper JSON object formatted as a string... */
-    let myWorksheet = targetRange.getWorksheet();
+    const colOffset = targetRange.getColumnIndex();
+    const rowOffset = targetRange.getRowIndex()+1; //Because indx 0 of values is actually indx 1 of overall range
+    // let myWorksheet = targetRange.getWorksheet(); // gets the worksheet containing the specified range
     /* Assume that index 0 of the topmost array contains the column headers, so just pull the column headers.. */
     let headerRowVals = targetRange.getValues()[0];
-  
+    console.log(`\tHeader row range: ${targetRange.getRow(0).getAddress()}\n\tand '.getColumnIndex()' yields: ${targetRange.getColumnIndex()}`);
+    
     /* Next, pull the entire range of data values, excluding the header row (assumed to be the zeroth row). By 
        using slice(), you retrieve everything BUT the header row. */
     let sheetVals = targetRange.getValues().slice(1);
@@ -180,7 +182,7 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
     let jsonArray: Array<JSON> = []; //This is clunky, but it's the only way the compiler doesn't complain.
     let rowCtr: number = 0; // WHILE EXCEL STARTS NUMBERING ROWS AT 1, FOR OUR PURPOSES, WE'LL NUMBER AT 0
     let rowLimit: number = sheetVals.length;
-    // let rowLimit: number = 3; //DEBUGGING ONLY
+    
     while (rowCtr < rowLimit) {
       jsonArray.push(JSON.parse('{}')); //PUSH AN EMPTY OBJECT ONTO THE ARRAY
       /* sheetVals[rowCtr] defines which row of the sheet range. The zero-based row number of the sheet range
@@ -190,7 +192,7 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
            headerRowVals[indx] is the column title, but the compiler doesn't like this value unless it is
            explicitly converted to a string value.  */
         // jsonArray[rowCtr][String(headerRowVals[indx])] = cellItem;
-        jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': targetRange.getCell(rowCtr, indx).getAddress()};
+        jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': `R${rowCtr+rowOffset}, C${indx+colOffset}`};// jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': targetRange.getCell(rowCtr, indx).getAddress()};
         // DEBUGGING BELOW (BUT DOESN'T WORK IF targetRange DOES NOT START AT CELL A1)
         // console.log('ObjKey: ' + String(headerRowVals[indx])+
         // '\n\tRow: '+rowCtr+' ColIndx: '+indx+' Val: '+cellItem+'\n\tRetrievedAddress: '+

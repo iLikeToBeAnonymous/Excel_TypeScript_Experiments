@@ -61,10 +61,12 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
         let myJsonObj: Array<JSON> = rangeToJsonObj(targetTbl.getRange());
         // let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm] == 'Salt Lake City');
         let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm]['Val'].match(srchRegex));//let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm].match(srchRegex));
-        console.log(`For a worksheet, Row/Col refs start counting at zero.\n\tTherefore, the val of R3, C4 is: ${myWorksheet.getCell(3,4).getValue()}`)
-        console.log(`Demonstration of structure of filtered JSON obj: ${searchRez[0]['eventID']['Addr']}`)
-        console.log(`Demonstration of .getCell() method on first returned ele of JSON obj: 
-            ${myWorksheet.getCell(searchRez[0]['eventID']['Addr'][0],searchRez[0]['eventID']['Addr'][1]).getAddress()}`)
+        console.log(`For a worksheet, Row/Col refs start counting at zero.\n\tTherefore, the val of R3, C4 is: ${myWorksheet.getCell(3,4).getValue()}`);
+        let frstColName: string = Object.keys(searchRez[0])[0];
+        console.log(`First Col Name: ${frstColName}`);
+        console.log(`Demonstration of address structure of filtered JSON obj: ${searchRez[0][frstColName]['Addr']}`);
+        console.log(`Demonstration of .getCell() method on first returned ele of JSON obj (using 'Row' and 'Col' keys): 
+            ${myWorksheet.getCell(searchRez[0][frstColName]['Row'],searchRez[0][frstColName]['Col']).getAddress()}`);
         console.log(JSON.stringify(searchRez,null,2));
         /** ############### END FILTER AS JSON ################ */
         /** ################################################### */
@@ -196,7 +198,7 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
            explicitly converted to a string value.  */
         // jsonArray[rowCtr][String(headerRowVals[indx])] = cellItem;
         // jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': `R${rowCtr+rowOffset}, C${indx+colOffset}`};// jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': targetRange.getCell(rowCtr, indx).getAddress()};
-        jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': [(rowCtr+rowOffset), (indx+colOffset)]};
+        jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': [(rowCtr+rowOffset),(indx+colOffset)],'Row': (rowCtr+rowOffset), 'Col':(indx+colOffset)};
         // DEBUGGING BELOW (BUT DOESN'T WORK IF targetRange DOES NOT START AT CELL A1)
         // console.log('ObjKey: ' + String(headerRowVals[indx])+
         // '\n\tRow: '+rowCtr+' ColIndx: '+indx+' Val: '+cellItem+'\n\tRetrievedAddress: '+

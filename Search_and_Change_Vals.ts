@@ -1,4 +1,4 @@
-function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm: string, targetRangeAddr: string, searchTerm: string) {
+function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm: string, targetRangeAddr: string, searchTerm: string, indicatorColNm: string) {
     /* https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.workbook?view=office-scripts#excelscript-excelscript-workbook-getselectedrange-member(1) */
     
     /* ###################### BEGIN DEFAULT PARAM SETUP ######################## */
@@ -18,7 +18,7 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
     /* If targetTblNm is NOT passed in from Power Automate... */
     if(targetTblNm === undefined){targetTblNm = 'Table1'}; // This should be passed in from Power Automate
 
-    let indicatorColNm: string = 'evntLocation';
+    //let indicatorColNm: string = 'evntLocation'; // DELETE THIS ROW!
     /* Valid regular expressions can be passed directly to the RegExp constructor as a string. The only limitation of this
      * is that the backslash char ("\") is the escape character for strings, so any instance of a backslash must be doubled
      * for it to actually be saved in the variable. */
@@ -60,10 +60,13 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
         /** #################  FILTER AS JSON ################# */  
         let myJsonObj: Array<JSON> = rangeToJsonObj(targetTbl.getRange());
         // let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm] == 'Salt Lake City');
+        if(indicatorColNm === undefined || myJsonObj[0].hasOwnProperty(indicatorColNm) == false){ //Unfortunately, the newer Object.hasOwn() doesn't work in OfficeScripts...
+          console.log(`"${indicatorColNm}" is an invalid indicatorColNm value! Fallback to first key of JSON obj...`)
+          indicatorColNm = Object.keys(myJsonObj[0])[0]
+        };
         let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm]['Val'].match(srchRegex));//let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm].match(srchRegex));
         console.log(`For a worksheet, Row/Col refs start counting at zero.\n\tTherefore, the val of R3, C4 is: ${myWorksheet.getCell(3,4).getValue()}`);
         let frstColName: string = Object.keys(searchRez[0])[0];
-        console.log(`First Col Name: ${frstColName}`);
         console.log(`Demonstration of address structure of filtered JSON obj: ${searchRez[0][frstColName]['Addr']}`);
         console.log(`Demonstration of .getCell() method on first returned ele of JSON obj (using 'Row' and 'Col' keys): 
             ${myWorksheet.getCell(searchRez[0][frstColName]['Row'],searchRez[0][frstColName]['Col']).getAddress()}`);

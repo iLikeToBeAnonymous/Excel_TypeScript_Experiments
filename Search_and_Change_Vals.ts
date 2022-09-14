@@ -30,7 +30,7 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
     //  * See also the MDN entry: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping */
     // searchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); /* A pair of backslashes can also be inserted via String.fromCharCode(92, 92)); */
     const srchRegex: RegExp = new RegExp(searchTerm, 'gi');
-    console.log(srchRegex.source); //DEBUGGING
+    console.log(`Compiled regex.source: "${srchRegex.source}"\n\tand regex: "${srchRegex}"`); //DEBUGGING
     /* ###################### END DEFAULT PARAM SETUP ########################## */
     /* ######################################################################### */
     /* ########################## TABLE STUFF ################################## */  
@@ -66,6 +66,7 @@ function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm
         };
         let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm]['Val'].match(srchRegex));//let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm].match(srchRegex));
         console.log(`For a worksheet, Row/Col refs start counting at zero.\n\tTherefore, the val of R3, C4 is: ${myWorksheet.getCell(3,4).getValue()}`);
+        console.log(`Search rez not eq to undefined: ${searchRez[0]!==undefined}`);
         let frstColName: string = Object.keys(searchRez[0])[0];
         console.log(`Demonstration of address structure of filtered JSON obj: ${searchRez[0][frstColName]['Addr']}`);
         console.log(`Demonstration of .getCell() method on first returned ele of JSON obj (using 'Row' and 'Col' keys): 

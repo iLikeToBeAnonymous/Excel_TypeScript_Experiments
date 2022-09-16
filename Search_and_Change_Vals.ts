@@ -1,4 +1,11 @@
-function main(workbook: ExcelScript.Workbook, targetSheetNm: string, targetTblNm: string, targetRangeAddr: string, searchTerm: string, indicatorColNm: string) {
+function main(
+    workbook: ExcelScript.Workbook,
+    targetSheetNm: string,
+    targetTblNm: string,
+    targetRangeAddr: string,
+    searchTerm: string,
+    indicatorColNm: string
+  ) {
     /* https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.workbook?view=office-scripts#excelscript-excelscript-workbook-getselectedrange-member(1) */
     
     /* ###################### BEGIN DEFAULT PARAM SETUP ######################## */

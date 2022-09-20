@@ -66,7 +66,7 @@ function main(
         /** ################################################### */
         /** #################  FILTER AS JSON ################# */  
         let myJsonObj: Array<JSON> = rangeToJsonObj(targetRange); //rangeToJsonObj(targetTbl.getRange());
-        
+        // console.log(JSON.stringify(myJsonObj,null,2)); // DEBUGGING!
         if(indicatorColNm === undefined || myJsonObj[0].hasOwnProperty(indicatorColNm) == false){ //Unfortunately, the newer Object.hasOwn() doesn't work in OfficeScripts...
           console.log(`"${indicatorColNm}" is an invalid indicatorColNm value! Fallback to first key of JSON obj...`)
           indicatorColNm = Object.keys(myJsonObj[0])[0]
@@ -181,17 +181,17 @@ function main(
   };
   
   function rangeToJsonObj(targetRange: ExcelScript.Range) {
-    const colOffset = targetRange.getColumnIndex();
-    const rowOffset = targetRange.getRowIndex()+1; //Because indx 0 of values is actually indx 1 of overall range
-    // let myWorksheet = targetRange.getWorksheet(); // gets the worksheet containing the specified range
-    /* Assume that index 0 of the topmost array contains the column headers, so just pull the column headers.. */
-    console.log(`\tHeader row range: ${targetRange.getRow(0).getAddress()}\n\tand '.getColumnIndex()' yields: ${targetRange.getColumnIndex()}`);
     let headRowTrimLeft = targetRange.getRow(0).getUsedRange(); //Trims off empty cells at the beginning of the first row
     let headRowTrimRight = headRowTrimLeft.getRow(0).getColumn(0).getExtendedRange(ExcelScript.KeyboardDirection.right); //Essentially performs Shift + Ctrl + RightArrow from the first cell
     let rowCount = targetRange.getRowCount()// targetRange.getLastCell().getRowIndex()-rowOffset //.getColumn(<index>) pulls using the local index in the range
     let colCount = headRowTrimRight.getColumnCount() //headerRowVals.filter(word => word.toString().length > 0).length; // Number of populated cells in the header row
     let resizedRange = headRowTrimRight.getAbsoluteResizedRange(rowCount, colCount).getUsedRange();
-    console.log(`headRowTrimRight: ${headRowTrimRight.getAddress()}\nRow Count: ${rowCount}\nRow Index: ${targetRange.getLastCell().getRowIndex()-rowOffset}\nCol Count:${colCount}\nResized range: ${resizedRange.getAddress()}`); //\nLast cell addr: ${rowCount.getAddress()}`);
+    console.log(`headRowTrimRight: ${headRowTrimRight.getAddress()}\nRow Count: ${rowCount}\nRow Index: ${targetRange.getLastCell().getRowIndex()}\nCol Count:${colCount}\nResized range: ${resizedRange.getAddress()}`); //\nLast cell addr: ${rowCount.getAddress()}`);
+    const colOffset = resizedRange.getColumnIndex();
+    const rowOffset = resizedRange.getRowIndex()+1; //Because indx 0 of values is actually indx 1 of overall range
+    // let myWorksheet = targetRange.getWorksheet(); // gets the worksheet containing the specified range
+    /* Assume that index 0 of the topmost array contains the column headers, so just pull the column headers.. */
+    console.log(`\tHeader row range: ${targetRange.getRow(0).getAddress()}\n\tand '.getColumnIndex()' yields: ${targetRange.getColumnIndex()}`);
     let headerRowVals = resizedRange.getValues()[0];
     /* Next, pull the entire range of data values, excluding the header row (assumed to be the zeroth row). By 
        using slice(), you retrieve everything BUT the header row. */
@@ -203,35 +203,29 @@ function main(
     let jsonArray: Array<JSON> = []; //This is clunky, but it's the only way the compiler doesn't complain.
     let rowCtr: number = 0; // WHILE EXCEL STARTS NUMBERING ROWS AT 1, FOR OUR PURPOSES, WE'LL NUMBER AT 0
     let rowLimit: number = sheetVals.length;
-    
+    let jsonCtr: number = 0;
+    let tempObj: JSON;
     while (rowCtr < rowLimit) {
-      jsonArray.push(JSON.parse('{}')); //PUSH AN EMPTY OBJECT ONTO THE ARRAY
       /* sheetVals[rowCtr] defines which row of the sheet range. The zero-based row number of the sheet range
-         corresponds to the index of the jsonArray into which we'll insert the object representing that row. */
-      sheetVals[rowCtr].forEach((cellItem: string, indx: number) => {
-        /* jsonArray[rowCtr] is the index of the jsonArray at which the object for the row is stored
-           headerRowVals[indx] is the column title, but the compiler doesn't like this value unless it is
-           explicitly converted to a string value.  */
-        // jsonArray[rowCtr][String(headerRowVals[indx])] = cellItem;
-        // jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': `R${rowCtr+rowOffset}, C${indx+colOffset}`};// jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': resizedRange.getCell(rowCtr, indx).getAddress()};
-        jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': [(rowCtr+rowOffset),(indx+colOffset)],
-          'Row': (rowCtr+rowOffset), 'Col':(indx+colOffset)};
-        // DEBUGGING BELOW (BUT DOESN'T WORK IF resizedRange DOES NOT START AT CELL A1)
-        // console.log('ObjKey: ' + String(headerRowVals[indx])+
-        // '\n\tRow: '+rowCtr+' ColIndx: '+indx+' Val: '+cellItem+'\n\tRetrievedAddress: '+
-        // myWorksheet.getRangeByIndexes(rowCtr,indx,1,1).getAddress()
-        // );
-        /* BELOW LINE USES THE LOCAL ROW AND COLUMN OF THE RANGE 
-         * OBJECT TO THE GLOBAL ADDRESS OF THE INDIVIDUAL ELEMENTS */
-        // console.log('Addr: ' + resizedRange.getCell(rowCtr,indx).getAddress());
-      });
-  
+      corresponds to the index of the jsonArray into which we'll insert the object representing that row. */
+      if(sheetVals[rowCtr].join('').trim() != ''){ // Filters out empty rows
+        jsonArray.push(JSON.parse('{}')); //PUSH AN EMPTY OBJECT ONTO THE ARRAY
+        sheetVals[rowCtr].forEach((cellItem: string, indx: number) => {
+          /* jsonArray[rowCtr] is the index of the jsonArray at which the object for the row is stored
+            headerRowVals[indx] is the column title, but the compiler doesn't like this value unless it is
+            explicitly converted to a string value.  */
+          // jsonArray[rowCtr][String(headerRowVals[indx])] = cellItem;
+          // jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': `R${rowCtr+rowOffset}, C${indx+colOffset}`};// jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': resizedRange.getCell(rowCtr, indx).getAddress()};
+          jsonArray[jsonCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': [(rowCtr+rowOffset),(indx+colOffset)],
+            'Row': (rowCtr+rowOffset), 'Col':(indx+colOffset)};
+
+          // tempObj[String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': [(rowCtr+rowOffset),(indx+colOffset)],
+          //   'Row': (rowCtr+rowOffset), 'Col':(indx+colOffset)};
+        }); jsonCtr++;
+      }
+      
       rowCtr++; // Advance to the next row of the sheet.
     };
     // console.log(JSON.stringify(jsonArray, null, 2)); //DEBUGGING
     return jsonArray;
   };
-
-  function trimRangeToValidCols(targetRange: ExcelScript.Range){
-    targetRange.getRow(0).getUsedRange();
-  }

@@ -1,7 +1,7 @@
 function main(
     workbook: ExcelScript.Workbook,
     targetSheetNm: string,
-    targetTblNm: string,
+    // targetTblNm: string,
     targetRangeAddr: string,
     searchTerm: string,
     indicatorColNm: string
@@ -21,9 +21,9 @@ function main(
     console.log('1st visible worksheet of workbook: ' + targetSheetNm); // DEBUGGING
     // let targetRange = myWorksheet.getRange('A4:CM458')
     // let targetRange = myWorksheet.getUsedRange(true);
-    let targetTbl: ExcelScript.Table; // Simply a declaration of the var without a value.
-    /* If targetTblNm is NOT passed in from Power Automate... */
-    if(targetTblNm === undefined){targetTblNm = 'Table1'}; // This should be passed in from Power Automate
+// let targetTbl: ExcelScript.Table; // Simply a declaration of the var without a value.
+// /* If targetTblNm is NOT passed in from Power Automate... */
+// if(targetTblNm === undefined){targetTblNm = 'Table1'}; // This should be passed in from Power Automate
 
     //let indicatorColNm: string = 'evntLocation'; // DELETE THIS ROW!
     /* Valid regular expressions can be passed directly to the RegExp constructor as a string. The only limitation of this
@@ -47,30 +47,30 @@ function main(
     let tableCount = myTables.length; // like Array.length, this is the count of entities, so 0 means no tables
     if (tableCount == 0) { // If no tables exist, create one using range defined above
       console.log('No tables in this worksheet!'); // DEBUGGING
-      convertRangeToTable(myWorksheet, targetRange, targetTblNm); return 'New table created!';// call custom convertRangeToTable() function
+//      convertRangeToTable(myWorksheet, targetRange, targetTblNm); return 'New table created!';// call custom convertRangeToTable() function
     } else { /** We know that worksheet DOES contain more than one table, but we don't know if it contains the one we're looking for */
       console.log('Worksheet table count: ' + tableCount + '...'); // DEBUGGING
       /* CHECK IF targetTblNm IS A VALID TABLE IN THE WORKSHEET */
       let tblsFound: Array<string | number> = myTables.map(eachTbl => eachTbl.getName()); console.log('tblsFound:\n\t'+tblsFound.join('\n\t'));
       /* IF THE WORKSHEET DOES CONTAIN TABLES, BUT NONE BY THE NAME PASSED TO THIS SCRIPT, 
        * ATTEMPT TO PROCEED BY FALLING BACK TO THE FIRST TABLE FOUND IN THE WORKSHEET...  */
-      if(!tblsFound.includes(targetTblNm)){ 
-        console.log(`targetTblNm '${targetTblNm}' not found...\nUsing first found table, '${tblsFound[0]}' instead...`);
-        targetTblNm = String(tblsFound[0]);//myWorksheet.getTables()[0].getName();
-      }; 
+//      if(!tblsFound.includes(targetTblNm)){ 
+//        console.log(`targetTblNm '${targetTblNm}' not found...\nUsing first found table, '${tblsFound[0]}' instead...`);
+//        targetTblNm = String(tblsFound[0]);//myWorksheet.getTables()[0].getName();
+//    }; 
       // console.log('Table[0] name: ' + targetTblNm); // DEBUGGING
       /**Use a try-catch to see if you can acquire the table you're looking for by name */
-      try { targetTbl = myWorksheet.getTable(targetTblNm) } catch{ console.log(`Table "${targetTblNm}" cannot be acquired!`) };
-      if (targetTbl != null) { /** .getTable returns null if table can't be acquired */
-
+//      try { targetTbl = myWorksheet.getTable(targetTblNm) } catch{ console.log(`Table "${targetTblNm}" cannot be acquired!`) };
+//      if (targetTbl != null) { /** .getTable returns null if table can't be acquired */
+        console.log(`Val of targetRange: ${targetRange.getAddress()}\n Zeroth used range: ${targetRange.getRow(0).getUsedRange().getAddress()}`)
         /** ################################################### */
         /** #################  FILTER AS JSON ################# */  
-        let myJsonObj: Array<JSON> = rangeToJsonObj(targetTbl.getRange());
-        // let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm] == 'Salt Lake City');
+        let myJsonObj: Array<JSON> = rangeToJsonObj(targetRange); //rangeToJsonObj(targetTbl.getRange());
+        
         if(indicatorColNm === undefined || myJsonObj[0].hasOwnProperty(indicatorColNm) == false){ //Unfortunately, the newer Object.hasOwn() doesn't work in OfficeScripts...
           console.log(`"${indicatorColNm}" is an invalid indicatorColNm value! Fallback to first key of JSON obj...`)
           indicatorColNm = Object.keys(myJsonObj[0])[0]
-        };
+        }; console.log(`Number of Rows in myJsonObj: ${myJsonObj.length}\nIndicator col name: ${indicatorColNm}`)
         let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm]['Val'].match(srchRegex));//let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm].match(srchRegex));
         console.log(`For a worksheet, Row/Col refs start counting at zero.\n\tTherefore, the val of R3, C4 is: ${myWorksheet.getCell(3,4).getValue()}`);
         console.log(`Search rez not eq to undefined: ${searchRez[0]!==undefined}`);
@@ -112,9 +112,9 @@ function main(
         /** ########## END FILTERING VERIFIED TABLE ########## */
         /** ################################################### */
 
-      } else if (targetTbl == null) {
-        console.log(`The table "${targetTblNm}" can neither be found nor created!`);
-      } else { console.log('He\'s dead, Jim!') };
+//      } else if (targetTbl == null) {
+//        console.log(`The table "${targetTblNm}" can neither be found nor created!`);
+//      } else { console.log('He\'s dead, Jim!') };
     }
     /** https://docs.microsoft.com/en-us/office/dev/scripts/tutorials/excel-power-automate-trigger?source=docs
      * https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.table?view=office-scripts 
@@ -185,12 +185,17 @@ function main(
     const rowOffset = targetRange.getRowIndex()+1; //Because indx 0 of values is actually indx 1 of overall range
     // let myWorksheet = targetRange.getWorksheet(); // gets the worksheet containing the specified range
     /* Assume that index 0 of the topmost array contains the column headers, so just pull the column headers.. */
-    let headerRowVals = targetRange.getValues()[0];
     console.log(`\tHeader row range: ${targetRange.getRow(0).getAddress()}\n\tand '.getColumnIndex()' yields: ${targetRange.getColumnIndex()}`);
-    
+    let headRowTrimLeft = targetRange.getRow(0).getUsedRange(); //Trims off empty cells at the beginning of the first row
+    let headRowTrimRight = headRowTrimLeft.getRow(0).getColumn(0).getExtendedRange(ExcelScript.KeyboardDirection.right); //Essentially performs Shift + Ctrl + RightArrow from the first cell
+    let rowCount = targetRange.getRowCount()// targetRange.getLastCell().getRowIndex()-rowOffset //.getColumn(<index>) pulls using the local index in the range
+    let colCount = headRowTrimRight.getColumnCount() //headerRowVals.filter(word => word.toString().length > 0).length; // Number of populated cells in the header row
+    let resizedRange = headRowTrimRight.getAbsoluteResizedRange(rowCount, colCount).getUsedRange();
+    console.log(`headRowTrimRight: ${headRowTrimRight.getAddress()}\nRow Count: ${rowCount}\nRow Index: ${targetRange.getLastCell().getRowIndex()-rowOffset}\nCol Count:${colCount}\nResized range: ${resizedRange.getAddress()}`); //\nLast cell addr: ${rowCount.getAddress()}`);
+    let headerRowVals = resizedRange.getValues()[0];
     /* Next, pull the entire range of data values, excluding the header row (assumed to be the zeroth row). By 
        using slice(), you retrieve everything BUT the header row. */
-    let sheetVals = targetRange.getValues().slice(1);
+    let sheetVals = resizedRange.getValues().slice(1);
   
     // console.log(sheetVals);
     // console.log(headerRowVals.join(', '));
@@ -208,16 +213,17 @@ function main(
            headerRowVals[indx] is the column title, but the compiler doesn't like this value unless it is
            explicitly converted to a string value.  */
         // jsonArray[rowCtr][String(headerRowVals[indx])] = cellItem;
-        // jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': `R${rowCtr+rowOffset}, C${indx+colOffset}`};// jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': targetRange.getCell(rowCtr, indx).getAddress()};
-        jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': [(rowCtr+rowOffset),(indx+colOffset)],'Row': (rowCtr+rowOffset), 'Col':(indx+colOffset)};
-        // DEBUGGING BELOW (BUT DOESN'T WORK IF targetRange DOES NOT START AT CELL A1)
+        // jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': `R${rowCtr+rowOffset}, C${indx+colOffset}`};// jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': resizedRange.getCell(rowCtr, indx).getAddress()};
+        jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': [(rowCtr+rowOffset),(indx+colOffset)],
+          'Row': (rowCtr+rowOffset), 'Col':(indx+colOffset)};
+        // DEBUGGING BELOW (BUT DOESN'T WORK IF resizedRange DOES NOT START AT CELL A1)
         // console.log('ObjKey: ' + String(headerRowVals[indx])+
         // '\n\tRow: '+rowCtr+' ColIndx: '+indx+' Val: '+cellItem+'\n\tRetrievedAddress: '+
         // myWorksheet.getRangeByIndexes(rowCtr,indx,1,1).getAddress()
         // );
         /* BELOW LINE USES THE LOCAL ROW AND COLUMN OF THE RANGE 
          * OBJECT TO THE GLOBAL ADDRESS OF THE INDIVIDUAL ELEMENTS */
-        // console.log('Addr: ' + targetRange.getCell(rowCtr,indx).getAddress());
+        // console.log('Addr: ' + resizedRange.getCell(rowCtr,indx).getAddress());
       });
   
       rowCtr++; // Advance to the next row of the sheet.
@@ -225,3 +231,7 @@ function main(
     // console.log(JSON.stringify(jsonArray, null, 2)); //DEBUGGING
     return jsonArray;
   };
+
+  function trimRangeToValidCols(targetRange: ExcelScript.Range){
+    targetRange.getRow(0).getUsedRange();
+  }

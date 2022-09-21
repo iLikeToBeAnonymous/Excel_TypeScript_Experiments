@@ -18,7 +18,7 @@ function main(
   } else {
     targetRange = myWorksheet.getRange(targetRangeAddr); console.log(`Found target range ${targetRange.getAddress()}`);
   };
-
+  console.log(`Raw targetRange.getUsedRange(): ${targetRange.getUsedRange().getAddress()}\nRaw targetRange row count: ${targetRange.getUsedRange().getRowCount()}`); // DEBUGGING
   /* Valid regular expressions can be passed directly to the RegExp constructor as a string. The only limitation of this
   * is that the backslash char ("\") is the escape character for strings, so any instance of a backslash must be doubled
   * for it to actually be saved in the variable. */
@@ -57,7 +57,8 @@ function main(
     console.log(`Demonstration of .getCell() method on first returned ele of JSON obj (using 'Row' and 'Col' keys): 
             ${myWorksheet.getCell(searchRez[0][frstColName]['Row'], searchRez[0][frstColName]['Col']).getAddress()}`);
   };
-  console.log(JSON.stringify(searchRez, null, 2));
+  // console.log(JSON.stringify(searchRez, null, 2));
+  return searchRez;
   /** ############### END FILTER AS JSON ################ */
   /** ################################################### */
 }; /* ########################## END FUNCTION MAIN ################################## */
@@ -121,13 +122,18 @@ function splitMergedAreas(targetRange: ExcelScript.Range) {
 };
 
 function rangeToJsonObj(targetRange: ExcelScript.Range) {
-  let headRowTrimLeft = targetRange.getUsedRange().getRow(0); //Trims off empty cells above and left of the first row
-  // In event headRowTrimLeft is < 2, performing getExtendedRange selects all the empty cells in the row. Below ternary assignment prevents this.
+  /* Isolate the used range within the target range, then select the uppermost populated row. Next, select the used range of the uppermost row
+   *  and once again get the used range. This effectively removes any populated columns without headers to the left of the first cell. 
+   * Once complete, row 0 of targetRange is trimmed down so the first column header is at the top-left position of the range "headRowTrimLeft" 
+   */
+  let headRowTrimLeft = targetRange.getUsedRange().getRow(0).getUsedRange(); 
+  /* If headRowTrimLeft has only one column, performing getExtendedRange selects all the empty cells in the row. Below ternary assignment prevents this. */
   let headRowTrimRight: ExcelScript.Range = (headRowTrimLeft.getColumnCount() > 1) ? headRowTrimLeft.getRow(0).getColumn(0).getExtendedRange(ExcelScript.KeyboardDirection.right) : headRowTrimLeft; //Essentially performs Shift + Ctrl + RightArrow from the first cell
-  let rowCount = targetRange.getRowCount()// targetRange.getLastCell().getRowIndex()-rowOffset //.getColumn(<index>) pulls using the local index in the range
-  let colCount = headRowTrimRight.getColumnCount() //headerRowVals.filter(word => word.toString().length > 0).length; // Number of populated cells in the header row
+  let rowCount = targetRange.getRowCount(); // targetRange.getLastCell().getRowIndex()-rowOffset //.getColumn(<index>) pulls using the local index in the range
+  // let colCount = headRowTrimRight.getColumnCount(); //headerRowVals.filter(word => word.toString().length > 0).length; // Number of populated cells in the header row
+  let colCount = (headRowTrimLeft.getColumnCount() > headRowTrimRight.getColumnCount()) ? headRowTrimRight.getColumnCount() : headRowTrimLeft.getColumnCount();
   let resizedRange = headRowTrimRight.getAbsoluteResizedRange(rowCount, colCount).getUsedRange();
-  console.log(`headRowTrimRight: ${headRowTrimRight.getAddress()}\nRow Count: ${rowCount}\nRow Index: ${targetRange.getLastCell().getRowIndex()}\nCol Count:${colCount}\nResized range: ${resizedRange.getAddress()}`); //\nLast cell addr: ${rowCount.getAddress()}`);
+  console.log(` headRowTrimLeft: ${headRowTrimLeft.getAddress()}\nheadRowTrimRight: ${headRowTrimRight.getAddress()}\nRow Count: ${rowCount}\nRow Index: ${targetRange.getLastCell().getRowIndex()}\nCol Count:${colCount}\nResized range: ${resizedRange.getAddress()}`); //\nLast cell addr: ${rowCount.getAddress()}`);
   const colOffset = resizedRange.getColumnIndex();
   const rowOffset = resizedRange.getRowIndex() + 1; //Because indx 0 of values is actually indx 1 of overall range
   // let myWorksheet = targetRange.getWorksheet(); // gets the worksheet containing the specified range

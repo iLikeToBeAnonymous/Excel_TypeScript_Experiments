@@ -9,7 +9,7 @@ function main(
 
   /* ###################### BEGIN DEFAULT PARAM SETUP ######################## */
   /* NEXT FEW LINES SET UP DEFAULT PARAMS IF NONE ARE PASSED FROM THE CALLER (POWER AUTOMATE) */
-  if (targetSheetNm === undefined) { targetSheetNm = workbook.getFirstWorksheet(true).getName() }; // Default to first visible worksheet if none specified
+  if (targetSheetNm === undefined || !workbook.getWorksheets().map((sheet) => sheet.getName()).includes(targetSheetNm)) { targetSheetNm = workbook.getFirstWorksheet(true).getName() }; // Default to first visible worksheet if none specified
   console.log('Target sheet name: "' + targetSheetNm + '"'); // DEBUGGING
   const myWorksheet = workbook.getWorksheet(targetSheetNm);
   let targetRange: ExcelScript.Range; //Declare the variable so it will be in scope for the rest of the script

@@ -58,7 +58,7 @@ function main(
             ${myWorksheet.getCell(searchRez[0][frstColName]['Row'], searchRez[0][frstColName]['Col']).getAddress()}`);
   };
   // console.log(JSON.stringify(searchRez, null, 2));
-  return searchRez;
+  return JSON.stringify(searchRez); // searchRez; // RETURNING searchRez THROWS A POWER AUTOMATE INCOMPATIBILITY ERROR. ONLY INTERFACES AND PRIMITIVES CAN BE RETURNED.
   /** ############### END FILTER AS JSON ################ */
   /** ################################################### */
 }; /* ########################## END FUNCTION MAIN ################################## */

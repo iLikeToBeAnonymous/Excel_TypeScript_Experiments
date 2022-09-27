@@ -2,7 +2,7 @@ function main(
   workbook: ExcelScript.Workbook,
   targetSheetNm: string,
   targetRangeAddr: string,
-  searchTerm: string, /* Search for empty or "0" matches can be done with '^$|^0$' */
+  searchTerm: string, /* Search for empty or "0" matches can be done with '^$|^0$|^\\s*$' */
   indicatorColNm: string
 ) {
   /* https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.workbook?view=office-scripts#excelscript-excelscript-workbook-getselectedrange-member(1) */
@@ -43,7 +43,7 @@ function main(
     indicatorColNm = Object.keys(myJsonObj[0])[0]
   }; 
   console.log(`Number of Rows in myJsonObj: ${myJsonObj.length}\nIndicator col name: ${indicatorColNm}`) // DEBUGGING
-  let debugMsg: string = 'Unfiltered Results: \n\t'; myJsonObj.forEach(ele => debugMsg += `Row: ${ele[indicatorColNm]['Row']}, ${indicatorColNm}: ${ele[indicatorColNm]['Val']}\n\t`); console.log(debugMsg);
+  let debugMsg: string //= 'Unfiltered Results: \n\t'; myJsonObj.forEach(ele => debugMsg += `Row: ${ele[indicatorColNm]['Row']}, ${indicatorColNm}: ${ele[indicatorColNm]['Val']}\n\t`); console.log(debugMsg);
 
   // PERFORM THE FILTER OPERATION (myRec[indicatorColNm]['Val'] is coerced to a string to enable Regex match to work)
   let searchRez: Array<JSON> = myJsonObj.filter(myRec => String(myRec[indicatorColNm]['Val']).match(srchRegex));//let searchRez: Array<JSON> = myJsonObj.filter(myRec => myRec[indicatorColNm].match(srchRegex));

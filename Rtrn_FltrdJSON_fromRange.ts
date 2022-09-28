@@ -2,8 +2,8 @@ function main(
   workbook: ExcelScript.Workbook,
   targetSheetNm: string,
   targetRangeAddr: string,
-  searchTerm: string, /* Search for empty or "0" matches can be done with '^$|^0$|^\\s*$' */
-  indicatorColNm: string
+  indicatorColNm: string,
+  searchTerm: string /* Search for empty or "0" matches can be done with '^$|^0$|^\\s*$' */
 ) {
   /* https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.workbook?view=office-scripts#excelscript-excelscript-workbook-getselectedrange-member(1) */
 

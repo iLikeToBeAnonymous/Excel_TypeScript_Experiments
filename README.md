@@ -9,3 +9,7 @@ A collection of scripts used while experimenting with Excel Online (via Office 3
 - [Official TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
 - [Call Scripts from a Manual Power Automate Flow](https://docs.microsoft.com/en-us/office/dev/scripts/tutorials/excel-power-automate-manual)
 - [Return Data from a Script to an Automatically-run Power Automate Flow](https://docs.microsoft.com/en-us/office/dev/scripts/tutorials/excel-power-automate-returns)
+- [Office Scripts Home](https://learn.microsoft.com/en-us/office/dev/scripts/)
+- [Create custom functions in Excel](https://learn.microsoft.com/en-us/office/dev/add-ins/excel/custom-functions-overview)
+- [Yeoman Generator](https://learn.microsoft.com/en-us/office/dev/add-ins/develop/yeoman-generator-overview)
+- [Office Script Settings for the Tenant](https://learn.microsoft.com/en-us/microsoft-365/admin/manage/manage-office-scripts-settings?view=o365-worldwide)

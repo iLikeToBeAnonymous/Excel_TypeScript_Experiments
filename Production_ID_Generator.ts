@@ -43,10 +43,12 @@ function convertToBase(originalNumber: string|number, targetBaseSystem: number) 
     var monthTable = '123456789OND'; //specialized base12 using 'O' for October, 'N' for November, 'D' for December.
     var dayTable = '123456789ABCDEFGHIJKLMNOPQRSTUV';
 
-    //make sure it's a positive integer. (the '10' as the 2nd param of parseInt ensures it's a base-10 number)
-    originalNumber = typeof (originalNumber) == 'string' ? String(parseInt(originalNumber,10)) : String(Math.abs(originalNumber) * 1); 
+    /*// make sure it's a positive integer. (the '10' as the 2nd param of parseInt ensures it's a base-10 number)
+    originalNumber = typeof (originalNumber) == 'string' ? String(parseInt(originalNumber,10)) : String(Math.abs(originalNumber) * 1); */
+    // Above line was introducing error via the parseInt function. Any number passed as a string simply needs to be confirmed to only have digits.
+    originalNumber = typeof (originalNumber) == 'string' ? String(originalNumber.match(/\d*/g).join('')) : String(Math.abs(originalNumber));
     while (Number(originalNumber) > 0) {
-        /* The javaScript "remainder" method fails due to the shorcomings
+        /* The javaScript "remainder" method fails due to the shortcomings
         / of floating point numbers. Therefore, a function needs to be created instead.*/
         var returnedModulo = modulo(originalNumber, String(targetBaseSystem)); // call to custom modulo function
         // modulo from loop: "+ loopRemainder);

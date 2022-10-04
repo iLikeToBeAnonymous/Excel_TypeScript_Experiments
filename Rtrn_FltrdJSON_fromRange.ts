@@ -4,7 +4,7 @@ function main(
   targetRangeAddr: string,
   indicatorColNm: string,
   searchTerm: string /* Search for empty or "0" matches can be done with '^$|^0$|^\\s*$' */
-) {
+) : string {
   /* https://docs.microsoft.com/en-us/javascript/api/office-scripts/excelscript/excelscript.workbook?view=office-scripts#excelscript-excelscript-workbook-getselectedrange-member(1) */
 
   /* ###################### BEGIN DEFAULT PARAM SETUP ######################## */
@@ -164,7 +164,7 @@ function rangeToJsonObj(targetRange: ExcelScript.Range) {
         // jsonArray[rowCtr][String(headerRowVals[indx])] = cellItem;
         // jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': `R${rowCtr+rowOffset}, C${indx+colOffset}`};// jsonArray[rowCtr][String(headerRowVals[indx])] = { 'Val': cellItem, 'Addr': resizedRange.getCell(rowCtr, indx).getAddress()};
         jsonArray[jsonCtr][String(headerRowVals[indx])] = {
-          'Val': cellItem, 'Addr': [(rowCtr + rowOffset), (indx + colOffset)],
+          'Val': cellItem, //'Addr': [(rowCtr + rowOffset), (indx + colOffset)],
           'Row': (rowCtr + rowOffset), 'Col': (indx + colOffset)
         };
 
@@ -175,4 +175,32 @@ function rangeToJsonObj(targetRange: ExcelScript.Range) {
   };
   // console.log(JSON.stringify(jsonArray, null, 2)); //DEBUGGING
   return jsonArray;
+};
+
+function updateJsonArray(myWorksheet: ExcelScript.Worksheet, jsonArray: Array<JSON>, targetKey: string, replacementVal: string | number | null | undefined) {
+  const strt = Date.now(); let delta = 0; // = Date.now() - strt; 
+  let fakeNow = strt;
+  let prev = strt;
+  let current = strt; 
+  jsonArray.forEach((record, indx) => {
+    //   console.log(`current: ${current}, delta ${delta}`)
+    fakeNow = prev += 59999; current = Date.now();
+    if (current < fakeNow) { current = fakeNow; };
+    delta = Math.abs(current - strt);
+    current = prev;
+    (replacementVal == null)
+      ? record[targetKey]['Val'] = convertToBase(String(genIsoDateTime(delta).match(/\d*/g).join('')), 32)
+      : record[targetKey]['Val'] = replacementVal;
+    myWorksheet.getCell(record[targetKey]['Row'], record[targetKey]['Col']).setValue(record[targetKey]['Val']);
+  });
+  return jsonArray;
+}; /* ################### END FUNCTION updateJsonArray() ################### */
+
+function genIsoDateTime(msOffset?: number) : string { //The question mark after the var declaration means it's optional
+  const now = new Date(); // console.log(`FUNCTION genDateTime() new Date() is \n\t${now.toISOString()}\n\tval of msOffset: ${msOffset}`);
+  if(msOffset !== (null || undefined)) {
+    // console.log('FUNCTION genDateTime():  msOffset is valid!');
+    now.setMilliseconds(now.getMilliseconds() + msOffset);
+  };
+  return now.toISOString(); // must use "val" instead of "text" since it's an input box.
 };

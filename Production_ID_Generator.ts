@@ -16,6 +16,16 @@ function genDateTime() {
   return now.toISOString(); // must use "val" instead of "text" since it's an input box.
 };
 
+function genIsoDateTime(msOffset?: number): string {
+  const now = new Date(); // console.log(`FUNCTION genIsoDateTime() new Date() is \n\t${now.toISOString()}\n\tval of msOffset: ${msOffset}`);
+  if(msOffset !== (null || undefined)) {
+    // console.log('FUNCTION genIsoDateTime():  msOffset is valid!');
+    now.setMilliseconds(now.getMilliseconds() + msOffset);
+  };
+  // console.log(`FUNCTION genIsoDateTime() final Date() is \n\t${now.toISOString()}\n\tVal of msOffset: ${msOffset}`);
+  return now.toISOString(); // must use "val" instead of "text" since it's an input box.
+};
+
 function formatRangeAsCode(myRange: ExcelScript.Range) {
 	/* Clear formats from range (just in case there is formatting applied other than what is being specified here.) 
 	This also clears out any manually-selected cell fill/highlighting 
@@ -36,38 +46,42 @@ function formatRangeAsCode(myRange: ExcelScript.Range) {
 	myRange.getFormat().getFont().setSize(10);
 };
 
-function convertToBase(originalNumber: string|number, targetBaseSystem: number) {
+function convertToBase(originalNumber: string | number, targetBaseSystem: number) {
     var convertedNumber = ''; //targetBaseSystem = 32;
     var extraNumeralTable = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghikjlmnopqrstuvwxyz';
     var chineseNumerals = '一二三四五六七八九十'; // These are the Chinese characters for 1 through 10 (the plus-looking thing is 10)
     var monthTable = '123456789OND'; //specialized base12 using 'O' for October, 'N' for November, 'D' for December.
     var dayTable = '123456789ABCDEFGHIJKLMNOPQRSTUV';
-
+    const fullTbl = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghikjlmnopqrstuvwxyz';
     /*// make sure it's a positive integer. (the '10' as the 2nd param of parseInt ensures it's a base-10 number)
     originalNumber = typeof (originalNumber) == 'string' ? String(parseInt(originalNumber,10)) : String(Math.abs(originalNumber) * 1); */
     // Above line was introducing error via the parseInt function. Any number passed as a string simply needs to be confirmed to only have digits.
     originalNumber = typeof (originalNumber) == 'string' ? String(originalNumber.match(/\d*/g).join('')) : String(Math.abs(originalNumber));
+    let debugMsg: Array<string> = []; let repts = originalNumber.length;
+    let nmbrBkp: string = originalNumber; 
     while (Number(originalNumber) > 0) {
         /* The javaScript "remainder" method fails due to the shortcomings
         / of floating point numbers. Therefore, a function needs to be created instead.*/
         var returnedModulo = modulo(originalNumber, String(targetBaseSystem)); // call to custom modulo function
         // modulo from loop: "+ loopRemainder);
         //rightDigit = returnedModulo;
-        if (returnedModulo > 9) {
-            var rightDigit = extraNumeralTable[Number(returnedModulo) - 10];
-        } else { rightDigit = String(returnedModulo); };
+        var rightDigit = fullTbl[Number(returnedModulo)]; // if (returnedModulo > 9) {
+        //     var rightDigit = extraNumeralTable[Number(returnedModulo) - 10];
+        // } else { rightDigit = String(returnedModulo); };
         // console.log("rightDigit: " + rightDigit);
         //console.log("originalNumber before flooring: " + longDivision(originalNumber,targetBaseSystem));
         //originalNumber = Math.floor(originalNumber / targetBaseSystem); //this is still introducing error.
-        originalNumber = (longDivision(Number(originalNumber), targetBaseSystem)).match(/\d{1,}/g)[0];
+        originalNumber = (longDivision(String(originalNumber), targetBaseSystem)).match(/\d{1,}/g)[0];
         /*The line above extracts the substring left of the decimal using match() method with a regular expression
           • See 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match'
         */
         // console.log("originalNumber at end of loop: " + Number(originalNumber)); // BigInt trims the leading zeroes, but isn't necessary for this to work
         //convertedNumber = String(rightDigit) + convertedNumber;
-        convertedNumber = String(rightDigit).concat(convertedNumber); //
+        convertedNumber = String(rightDigit).concat(convertedNumber);
+        // debugMsg.push(`Original Number: '${originalNumber}'${' '.repeat(repts - originalNumber.length)}, Returned Modulo: ${returnedModulo}, Converted Number: ${convertedNumber}`);
     }
-    // console.log(convertedNumber)
+    debugMsg.push(`Original Number: '${nmbrBkp}' to base${targetBaseSystem}: '${convertedNumber}'`);
+    console.log(debugMsg.join('\n'));
     return convertedNumber;
 };
 
@@ -87,26 +101,21 @@ function modulo(divident: string, divisor: string) { // when passing, make sure 
     return myAccumulator;
 };
 
-function longDivision(myNumerator: number, myDenominator: number) {
-    var num = myNumerator + '',
-        numLength = num.length,
-        remainder = 0,
-        answer = '',
-        i = 0; //the index of var "num".
+function longDivision(myNumerator: string, myDenominator: number){
+  var numeratorStr = (typeof myNumerator == 'string') ? myNumerator : String(myNumerator + ''),
+      // numLength = numeratorStr.length,
+      remainder = 0,
+      answer = '',
+      digit = 0; 
 
-    while (i < numLength + 3) { //Why did I put "+ 3" here???
-        // Here, parseInt(num[i]) just seems to be converting the string back into an int.
-        var digit = i < numLength ? parseInt(num[i]) : 0; //If i < numLength{digit = parseInt(num[i])} else{digit = 0}
-
-        if (i == numLength) {
-            answer = answer + ".";
-        }
+    numeratorStr.split('').forEach((char, indx) => {
+        digit = parseInt(char, 10);//digit = (indx < numLength) ? parseInt(char, 10) : 0;
         //answer = itself appended with the whole-number-only quotient of each digit (times 10) and the passed denominator
         // REMEMBER! var answer is a STRING!
         answer = answer + Math.floor((digit + (remainder * 10)) / myDenominator);
+        // console.log(`${(digit + (remainder * 10))} / ${myDenominator} = ${(digit + (remainder * 10)) / myDenominator} \n\tRounded down to:  ${Math.floor((digit + (remainder * 10)) / myDenominator)}`);
         remainder = (digit + (remainder * 10)) % myDenominator;
-        i++;
-    }
+    });
     return String(answer);
 };
 
